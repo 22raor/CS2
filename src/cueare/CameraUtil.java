@@ -42,7 +42,7 @@ public class CameraUtil {
 	CanvasFrame canvas;
 
 	// scaling
-	static boolean downScale = true;
+	static boolean downScale = false;
 	static double downScaleFactor = 2;
 
 	JSlider threshold;
@@ -147,7 +147,7 @@ public class CameraUtil {
 		// frame.setExtendedState(JFrame.MAXIMIZED_BOTH);
 		frame.setVisible(true);
 
-		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 	}
 
 	public BufferedImage getCurrentFrame(boolean mirror) {
@@ -180,10 +180,14 @@ public class CameraUtil {
 		return getCurrentFrame(false);
 	}
 
-	public void initializeManualDisplay() {
+	public void initializeManualDisplay(boolean harris) {
 		JButton bigButt = new JButton("Selfie");
 
 		bigButt.setSize(20, 10);
+
+		JButton downscale = new JButton("Toggle Downscale");
+
+		downscale.setSize(20, 10);
 
 		JButton anotherButt = new JButton("Print Parameters");
 
@@ -202,7 +206,7 @@ public class CameraUtil {
 
 		try {
 			frame = this.getCurrentFrame();
-			canvas = new CanvasFrame("Camera");
+			canvas = new CanvasFrame("Rishi's Epic Camera Frame");
 			// canvas.setSize(800, 529);
 			canvas.setLayout(new FlowLayout());
 
@@ -231,7 +235,7 @@ public class CameraUtil {
 									false, true)));
 						} else {
 							display(rescale(BigBrainCornerDetector
-									.processFrameButCooler(CameraUtil.this.getCurrentFrame(), false, true)));
+									.processFrameButCooler(CameraUtil.this.getCurrentFrame(), false, true, harris)));
 						}
 
 					}
@@ -243,6 +247,13 @@ public class CameraUtil {
 				public void mouseClicked(MouseEvent e) {
 					System.out.println(
 							"Threshold: " + threshold.getValue() + "     Constant: " + constant.getValue() / 1000.0);
+				}
+			});
+
+			downscale.addMouseListener(new MouseAdapter() {
+				@Override
+				public void mouseClicked(MouseEvent e) {
+					CameraUtil.downScale = !downScale;
 				}
 			});
 
@@ -260,11 +271,6 @@ public class CameraUtil {
 					String x = xNum + "";
 					String y = yNum + "";
 
-					// if(xNum >= 0 && yNum >=0) {
-					// x = "0".repeat(3 - String.valueOf(xNum).length()) + xNum;
-					// y = "0".repeat(3 - String.valueOf(yNum).length()) + yNum;
-					// }
-
 					mouseCoords.setText("x: " + x + " y: " + y);
 					// currentY = e.getY();
 
@@ -279,6 +285,7 @@ public class CameraUtil {
 			canvas.add(mouseCoords);
 			canvas.add(bigButt);
 			canvas.add(anotherButt);
+			canvas.add(downscale);
 			canvas.add(threshold);
 			canvas.add(constant);
 			canvas.add(corners);
@@ -333,6 +340,10 @@ public class CameraUtil {
 
 	public void preProcess(boolean a) {
 		takeProcessedOutput = a;
+	}
+
+	public boolean isDownscaled() {
+		return this.downScale;
 	}
 
 	public BufferedImage toBufferedImage(Image img) {

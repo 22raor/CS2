@@ -29,13 +29,15 @@ public class BigBrainCornerDetector {
 	static int threshold = 200;
 	static int corners = 15;
 
+	static boolean harris = false; 
+	
 	public static void main(String... args) {
 		// System.loadLibrary(Core.NATIVE_LIBRARY_NAME);
 		OpenCV.loadLocally();
 
 		c = new CameraUtil();
 		c.preProcess(true);
-		c.initializeManualDisplay();
+		c.initializeManualDisplay(harris);
 		beginFeederThread();
 
 		drawBoundsThread();
@@ -55,7 +57,7 @@ public class BigBrainCornerDetector {
 			k = c.getConstant();
 			corners = c.getCorners();
 
-			currentImage = processFrameButCooler(c.getCurrentFrame(), c.getGray(), false);
+			currentImage = processFrameButCooler(c.getCurrentFrame(), c.getGray(), false, harris);
 			// currentImage = c.getCurrentFrame();
 			try {
 				Thread.sleep(50);
@@ -122,7 +124,7 @@ public class BigBrainCornerDetector {
 
 	static Random rng = new Random();
 
-	public static BufferedImage processFrameButCooler(BufferedImage currentFrame, boolean gray, boolean printLocs) {
+	public static BufferedImage processFrameButCooler(BufferedImage currentFrame, boolean gray, boolean printLocs, boolean harris) {
 		Mat src = BufferedImage2Mat(currentFrame);
 		Mat srcGray = new Mat();
 		Imgproc.cvtColor(src, srcGray, Imgproc.COLOR_BGR2GRAY);
@@ -133,7 +135,7 @@ public class BigBrainCornerDetector {
 		double qualityLevel = 0.01;
 		double minDistance = 10;
 		int blockSize = 3, gradientSize = 3;
-		boolean useHarrisDetector = false;
+		boolean useHarrisDetector = harris;
 
 		// double k = 0.04;
 
@@ -143,13 +145,14 @@ public class BigBrainCornerDetector {
 		// System.out.println("** Number of corners detected: " + corners.rows());
 		int[] cornersData = new int[(int) (corners.total() * corners.channels())];
 		corners.get(0, 0, cornersData);
-		int radius = 3;
+		int radius = c.isDownscaled() ? 3 : 4;
+		int thickness = c.isDownscaled() ? 1 : 2;
 		for (int i = 0; i < corners.rows(); i++) {
 //            Imgproc.circle(gray ? copy : src, new Point(cornersData[i * 2], cornersData[i * 2 + 1]), radius,
 //                    new Scalar(rng.nextInt(256), rng.nextInt(256), rng.nextInt(256)), Core.FILLED);
 
 			Imgproc.circle(gray ? srcGray : copy, new Point(cornersData[i * 2], cornersData[i * 2 + 1]), radius,
-					new Scalar(0), 1, 5, 0);
+					new Scalar(0), thickness, 5, 0);
 
 			if (printLocs) {
 				System.out.println("Corner at : " + cornersData[i * 2] + " , " + cornersData[i * 2 + 1]);
