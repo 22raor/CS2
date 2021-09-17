@@ -3,6 +3,7 @@ package cueare;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.util.Random;
 
 import javax.imageio.ImageIO;
 
@@ -10,6 +11,7 @@ import org.opencv.core.Core;
 import org.opencv.core.CvType;
 import org.opencv.core.Mat;
 import org.opencv.core.MatOfByte;
+import org.opencv.core.MatOfPoint;
 import org.opencv.core.Point;
 import org.opencv.core.Scalar;
 import org.opencv.imgcodecs.Imgcodecs;
@@ -17,7 +19,7 @@ import org.opencv.imgproc.Imgproc;
 
 import nu.pattern.OpenCV;
 
-public class HarrisCornerDetector {
+public class BigBrainCornerDetector {
 
 	static BufferedImage currentImage;
 	static Feeder feeder;
@@ -25,12 +27,14 @@ public class HarrisCornerDetector {
 
 	static double k = 0.04;
 	static int threshold = 200;
+	static int corners = 15;
 
 	public static void main(String... args) {
 		// System.loadLibrary(Core.NATIVE_LIBRARY_NAME);
 		OpenCV.loadLocally();
 
 		c = new CameraUtil();
+		c.preProcess(true);
 		c.initializeManualDisplay();
 		beginFeederThread();
 
@@ -49,8 +53,9 @@ public class HarrisCornerDetector {
 			// currentImage = c.getCurrentFrame();
 			threshold = c.getThreshold();
 			k = c.getConstant();
+			corners = c.getCorners();
 
-			currentImage = processFrame(c.getCurrentFrame(), c.getGray());
+			currentImage = processFrameButCooler(c.getCurrentFrame(), c.getGray(), false);
 			// currentImage = c.getCurrentFrame();
 			try {
 				Thread.sleep(50);
@@ -62,12 +67,14 @@ public class HarrisCornerDetector {
 
 	}
 
-	private static BufferedImage processFrame(BufferedImage currentFrame, boolean gray) {
+	public static BufferedImage processFrame(BufferedImage currentFrame, boolean gray, boolean printLocs) {
 		// Mat m = new Mat();
 		Mat src = BufferedImage2Mat(currentFrame);
 
 		if (src == null) {
+			// System.out.println("ih");
 			return currentFrame;
+			// return null;
 		}
 
 		Mat srcGray = new Mat();
@@ -97,7 +104,11 @@ public class HarrisCornerDetector {
 		for (int i = 0; i < dstNorm.rows(); i++) {
 			for (int j = 0; j < dstNorm.cols(); j++) {
 				if ((int) dstNormData[i * dstNorm.cols() + j] > threshold) {
-					Imgproc.circle(gray ? dstNormScaled : src, new Point(j, i), 5, new Scalar(0), 2, 8, 0);
+					Imgproc.circle(gray ? dstNormScaled : src, new Point(j, i), 3, new Scalar(0), 1, 5, 0);
+
+					if (printLocs) {
+						System.out.println("Corner at : " + j + " , " + i);
+					}
 				}
 			}
 		}
@@ -105,56 +116,46 @@ public class HarrisCornerDetector {
 		// System.out.println("frame found");
 
 		return Mat2BufferedImage(gray ? dstNormScaled : src);
-
+		// return Mat2BufferedImage(dstNormScaled);
+		// return null;
 	}
 
-	private static BufferedImage processFrameOrig(BufferedImage currentFrame) {
-		// Mat m = new Mat();
+	static Random rng = new Random();
+
+	public static BufferedImage processFrameButCooler(BufferedImage currentFrame, boolean gray, boolean printLocs) {
 		Mat src = BufferedImage2Mat(currentFrame);
-
-		if (src == null) {
-			return currentFrame;
-		}
-
 		Mat srcGray = new Mat();
 		Imgproc.cvtColor(src, srcGray, Imgproc.COLOR_BGR2GRAY);
-		// Imgproc.cvtColor(src, srcGray, Imgproc.COLOR_BGR2BGR565);
 
-		// int threshold = 220;
-		Mat dstNorm = new Mat();
-		Mat dstNormScaled = new Mat();
+		int maxCorners = 10;
+		maxCorners = Math.max(maxCorners, 1);
+		MatOfPoint corners = new MatOfPoint();
+		double qualityLevel = 0.01;
+		double minDistance = 10;
+		int blockSize = 3, gradientSize = 3;
+		boolean useHarrisDetector = false;
 
-		Mat dst = Mat.zeros(srcGray.size(), CvType.CV_32F);
-
-		/// Detector parameters
-		int blockSize = 2;
-		int apertureSize = 3;
 		// double k = 0.04;
 
-		/// Detecting corners
-		Imgproc.cornerHarris(srcGray, dst, blockSize, apertureSize, k);
+		Mat copy = src.clone();
+		Imgproc.goodFeaturesToTrack(srcGray, corners, maxCorners, qualityLevel, minDistance, new Mat(), blockSize,
+				gradientSize, useHarrisDetector, k);
+		// System.out.println("** Number of corners detected: " + corners.rows());
+		int[] cornersData = new int[(int) (corners.total() * corners.channels())];
+		corners.get(0, 0, cornersData);
+		int radius = 3;
+		for (int i = 0; i < corners.rows(); i++) {
+//            Imgproc.circle(gray ? copy : src, new Point(cornersData[i * 2], cornersData[i * 2 + 1]), radius,
+//                    new Scalar(rng.nextInt(256), rng.nextInt(256), rng.nextInt(256)), Core.FILLED);
 
-		/// Normalizing
-		Core.normalize(dst, dstNorm, 0, 255, Core.NORM_MINMAX);
-		Core.convertScaleAbs(dstNorm, dstNormScaled);
+			Imgproc.circle(gray ? srcGray : copy, new Point(cornersData[i * 2], cornersData[i * 2 + 1]), radius,
+					new Scalar(0), 1, 5, 0);
 
-		/// Drawing a circle around corners
-		float[] dstNormData = new float[(int) (dstNorm.total() * dstNorm.channels())];
-		dstNorm.get(0, 0, dstNormData);
-
-		for (int i = 0; i < dstNorm.rows(); i++) {
-			for (int j = 0; j < dstNorm.cols(); j++) {
-
-				if ((int) dstNormData[i * dstNorm.cols() + j] > threshold) {
-					Imgproc.circle(src, new Point(j, i), 5, new Scalar(0), 2, 8, 0);
-				}
+			if (printLocs) {
+				System.out.println("Corner at : " + cornersData[i * 2] + " , " + cornersData[i * 2 + 1]);
 			}
 		}
-
-		// System.out.println("frame found");
-
-		return Mat2BufferedImage(src);
-
+		return Mat2BufferedImage(gray ? srcGray : copy);
 	}
 
 	public static class Feeder extends Thread {
@@ -172,7 +173,7 @@ public class HarrisCornerDetector {
 
 				c.feedFrame(currentImage);
 				try {
-					Thread.sleep(20);
+					Thread.sleep(25);
 				} catch (InterruptedException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
@@ -192,13 +193,14 @@ public class HarrisCornerDetector {
 	}
 
 	public static Mat BufferedImage2Mat(BufferedImage image) {
+
 		ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
 		try {
-			ImageIO.write(image, "jpg", byteArrayOutputStream);
+			ImageIO.write(image, "png", byteArrayOutputStream);
 			byteArrayOutputStream.flush();
 			return Imgcodecs.imdecode(new MatOfByte(byteArrayOutputStream.toByteArray()), Imgcodecs.IMREAD_UNCHANGED);
 		} catch (Exception e) {
-
+			e.printStackTrace();
 		}
 		return null;
 	}
