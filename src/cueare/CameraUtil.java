@@ -37,6 +37,7 @@ public class CameraUtil {
 	static BufferedImage frame;
 	static boolean takeProcessedOutput;
 	static boolean processOlder = false;
+	static boolean mirror = true;
 
 	static Java2DFrameConverter conv = new Java2DFrameConverter();
 	CanvasFrame canvas;
@@ -44,6 +45,7 @@ public class CameraUtil {
 	// scaling
 	static boolean downScale = false;
 	static double downScaleFactor = 2;
+	static int scaleMethod = BufferedImage.SCALE_FAST;
 
 	JSlider threshold;
 	JSlider constant;
@@ -72,7 +74,7 @@ public class CameraUtil {
 	}
 
 	public void display() {
-		JButton bigButt = new JButton("Selfie");
+		JButton bigButt = new JButton("GrabQR");
 
 		bigButt.setSize(20, 10);
 
@@ -157,7 +159,7 @@ public class CameraUtil {
 
 			if (downScale) {
 				img = this.toBufferedImage(img.getScaledInstance((int) (img.getWidth() / CameraUtil.downScaleFactor),
-						(int) (img.getHeight() / CameraUtil.downScaleFactor), BufferedImage.SCALE_FAST));
+						(int) (img.getHeight() / CameraUtil.downScaleFactor), this.scaleMethod));
 
 			}
 
@@ -177,7 +179,7 @@ public class CameraUtil {
 	}
 
 	public BufferedImage getCurrentFrame() {
-		return getCurrentFrame(false);
+		return getCurrentFrame(mirror);
 	}
 
 	public void initializeManualDisplay(boolean harris) {
@@ -189,6 +191,10 @@ public class CameraUtil {
 
 		downscale.setSize(20, 10);
 
+		JButton reverse = new JButton("Mirror Image");
+
+		reverse.setSize(20, 10);
+
 		JButton anotherButt = new JButton("Print Parameters");
 
 		anotherButt.setSize(20, 10);
@@ -199,7 +205,7 @@ public class CameraUtil {
 		constant = new JSlider(10, 80, 52);
 		constant.setBorder(BorderFactory.createTitledBorder("Constant"));
 
-		corners = new JSlider(0, 30, 15);
+		corners = new JSlider(0, 100, BigBrainCornerDetector.cornersCount);
 		corners.setBorder(BorderFactory.createTitledBorder("Yeet LOL"));
 
 		gray = new JCheckBox("Gray?");
@@ -210,7 +216,7 @@ public class CameraUtil {
 			// canvas.setSize(800, 529);
 			canvas.setLayout(new FlowLayout());
 
-			canvas.setPreferredSize(new Dimension(1100, 580));
+			canvas.setPreferredSize(new Dimension(1222, 580));
 
 			try {
 				CameraUtil.this.frame = this.getCurrentFrame();
@@ -236,6 +242,10 @@ public class CameraUtil {
 						} else {
 							display(rescale(BigBrainCornerDetector
 									.processFrameButCooler(CameraUtil.this.getCurrentFrame(), false, true, harris)));
+
+							// display(rescale(BigBrainCornerDetector
+							// .processFrameIntoQR(CameraUtil.this.getCurrentFrame())));
+
 						}
 
 					}
@@ -245,8 +255,8 @@ public class CameraUtil {
 			anotherButt.addMouseListener(new MouseAdapter() {
 				@Override
 				public void mouseClicked(MouseEvent e) {
-					System.out.println(
-							"Threshold: " + threshold.getValue() + "     Constant: " + constant.getValue() / 1000.0);
+					System.out.println("Threshold: " + threshold.getValue() + "     Constant: "
+							+ constant.getValue() / 1000.0 + "     Yeet LOL: " + corners.getValue());
 				}
 			});
 
@@ -254,6 +264,13 @@ public class CameraUtil {
 				@Override
 				public void mouseClicked(MouseEvent e) {
 					CameraUtil.downScale = !downScale;
+				}
+			});
+
+			reverse.addMouseListener(new MouseAdapter() {
+				@Override
+				public void mouseClicked(MouseEvent e) {
+					CameraUtil.mirror = !mirror;
 				}
 			});
 
@@ -286,7 +303,9 @@ public class CameraUtil {
 			canvas.add(bigButt);
 			canvas.add(anotherButt);
 			canvas.add(downscale);
+			canvas.add(reverse);
 			canvas.add(threshold);
+
 			canvas.add(constant);
 			canvas.add(corners);
 			canvas.add(gray);
@@ -307,7 +326,7 @@ public class CameraUtil {
 		if (img != null) {
 
 			if (downScale) {
-				canvas.showImage(img.getScaledInstance(640, 480, BufferedImage.SCALE_FAST));
+				canvas.showImage(img.getScaledInstance(640, 480, this.scaleMethod));
 			} else {
 				canvas.showImage(img);
 			}
@@ -319,7 +338,7 @@ public class CameraUtil {
 	}
 
 	public BufferedImage rescale(BufferedImage img) {
-		return this.toBufferedImage(img.getScaledInstance(640, 480, BufferedImage.SCALE_FAST));
+		return this.toBufferedImage(img.getScaledInstance(640, 480, this.scaleMethod));
 	}
 
 	public boolean getGray() {
@@ -344,6 +363,10 @@ public class CameraUtil {
 
 	public boolean isDownscaled() {
 		return this.downScale;
+	}
+
+	public void setMirror(boolean a) {
+		mirror = a;
 	}
 
 	public BufferedImage toBufferedImage(Image img) {
