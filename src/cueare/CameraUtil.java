@@ -10,11 +10,7 @@ import java.awt.event.MouseMotionListener;
 import java.awt.geom.AffineTransform;
 import java.awt.image.AffineTransformOp;
 import java.awt.image.BufferedImage;
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
 
-import javax.imageio.ImageIO;
 import javax.swing.BorderFactory;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
@@ -29,6 +25,7 @@ import org.bytedeco.javacv.CanvasFrame;
 import org.bytedeco.javacv.FrameGrabber;
 import org.bytedeco.javacv.Java2DFrameConverter;
 import org.bytedeco.javacv.OpenCVFrameGrabber;
+import org.opencv.core.Mat;
 
 public class CameraUtil {
 
@@ -39,6 +36,8 @@ public class CameraUtil {
 	static boolean processOlder = false;
 	static boolean mirror = true;
 
+	static boolean noiseCancel = true;
+	
 	static Java2DFrameConverter conv = new Java2DFrameConverter();
 	CanvasFrame canvas;
 
@@ -151,6 +150,20 @@ public class CameraUtil {
 
 		frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 	}
+	public void display(Mat... img) {
+		JFrame frame = new JFrame();
+		frame.getContentPane().setLayout(new FlowLayout());
+
+		for (Mat i : img) {
+			frame.getContentPane().add(new JLabel(new ImageIcon(BigBrainCornerDetector.Mat2BufferedImage(i))));
+		}
+
+		frame.pack();
+		// frame.setExtendedState(JFrame.MAXIMIZED_BOTH);
+		frame.setVisible(true);
+
+		frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+	}
 
 	public BufferedImage getCurrentFrame(boolean mirror) {
 		try {
@@ -240,8 +253,14 @@ public class CameraUtil {
 							display(rescale(BigBrainCornerDetector.processFrame(CameraUtil.this.getCurrentFrame(),
 									false, true)));
 						} else {
-							display(rescale(BigBrainCornerDetector
-									.processFrameButCooler(CameraUtil.this.getCurrentFrame(), false, true, harris)));
+
+							if (noiseCancel) {
+								display(rescale(
+										BigBrainCornerDetector.noiseCancelling(CameraUtil.this.getCurrentFrame())));
+							} else {
+								display(rescale(BigBrainCornerDetector.processFrameButCooler(
+										CameraUtil.this.getCurrentFrame(), false, true, harris)));
+							}
 
 							// display(rescale(BigBrainCornerDetector
 							// .processFrameIntoQR(CameraUtil.this.getCurrentFrame())));

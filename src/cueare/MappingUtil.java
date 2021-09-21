@@ -159,9 +159,7 @@ public class MappingUtil {
 		}
 
 		assert count == 3 : "Orientation markers are invalid";
-
-//		1-0             2 -90
-//		3-90             4 - 180	
+	
 		int[] rots = { 0, 270, 90, 180 };
 		if (which == 0) {
 			return a;
@@ -193,14 +191,14 @@ public class MappingUtil {
 	}
 
 	public BufferedImage displayJR(boolean[][] spec) {
-		BufferedImage img = new BufferedImage(610, 610, BufferedImage.TYPE_INT_RGB);
+		BufferedImage img = new BufferedImage(630, 630, BufferedImage.TYPE_INT_RGB);
 		Graphics g = img.getGraphics();
-		g.fillRect(10, 10, 590, 590);
+		g.fillRect(20, 20, 590, 590);
 
 		for (int i = 0; i < spec.length; i++) {
 			for (int j = 0; j < spec[0].length; j++) {
 				g.setColor(spec[j][i] ? Color.black : Color.white);
-				g.fillRect(i * 80 + 25, j * 80 + 25, 80, 80);
+				g.fillRect(i * 80 + 35, j * 80 + 35, 80, 80);
 			}
 		}
 		display(img);
@@ -222,4 +220,8 @@ public class MappingUtil {
 		frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 	}
 
+	public void print(BufferedImage img) {
+		
+	}
+	
 }
