@@ -52,9 +52,10 @@ public class CameraUtil {
 
 	JCheckBox gray;
 	JTextArea mouseCoords = new JTextArea("x: y: ");
-
+	MappingUtil util;
+	
 	public CameraUtil() {
-
+		util = new MappingUtil();
 		try {
 			grabber = new OpenCVFrameGrabber(0);
 
@@ -141,7 +142,7 @@ public class CameraUtil {
 		frame.getContentPane().setLayout(new FlowLayout());
 
 		for (BufferedImage i : img) {
-			frame.getContentPane().add(new JLabel(new ImageIcon(i)));
+			frame.getContentPane().add(new JLabel(new ImageIcon(rescale(i))));
 		}
 
 		frame.pack();
@@ -155,7 +156,7 @@ public class CameraUtil {
 		frame.getContentPane().setLayout(new FlowLayout());
 
 		for (Mat i : img) {
-			frame.getContentPane().add(new JLabel(new ImageIcon(BigBrainCornerDetector.Mat2BufferedImage(i))));
+			frame.getContentPane().add(new JLabel(new ImageIcon(rescale(BigBrainCornerDetector.Mat2BufferedImage(i)))));
 		}
 
 		frame.pack();
@@ -255,8 +256,19 @@ public class CameraUtil {
 						} else {
 
 							if (noiseCancel) {
-								display(rescale(
-										BigBrainCornerDetector.noiseCancelling(CameraUtil.this.getCurrentFrame())));
+								BufferedImage res = rescale(
+										BigBrainCornerDetector.noiseCancelling(CameraUtil.this.getCurrentFrame(true)));
+								display(res);
+								
+										
+										boolean[][] finalOutput = util.orient(BigBrainCornerDetector.cropToCode(res));
+										util.displayJR(finalOutput);
+										try {
+											System.out.println(util.decode(finalOutput));
+										} catch (Exception e1) {
+											// TODO Auto-generated catch block
+											e1.printStackTrace();
+										}
 							} else {
 								display(rescale(BigBrainCornerDetector.processFrameButCooler(
 										CameraUtil.this.getCurrentFrame(), false, true, harris)));
@@ -358,6 +370,10 @@ public class CameraUtil {
 
 	public BufferedImage rescale(BufferedImage img) {
 		return this.toBufferedImage(img.getScaledInstance(640, 480, this.scaleMethod));
+	}
+	
+	public BufferedImage rescale(BufferedImage img, int scaleMethod) {
+		return this.toBufferedImage(img.getScaledInstance(640, 480, scaleMethod));
 	}
 
 	public boolean getGray() {

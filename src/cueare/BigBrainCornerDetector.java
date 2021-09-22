@@ -1,9 +1,12 @@
 package cueare;
 
+import java.awt.Color;
+import java.awt.Graphics;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
@@ -18,7 +21,6 @@ import org.opencv.core.MatOfByte;
 import org.opencv.core.MatOfPoint;
 import org.opencv.core.MatOfPoint2f;
 import org.opencv.core.Point;
-import org.opencv.core.Rect;
 import org.opencv.core.Scalar;
 import org.opencv.core.Size;
 import org.opencv.imgcodecs.Imgcodecs;
@@ -67,7 +69,8 @@ public class BigBrainCornerDetector {
 			k = c.getConstant();
 			cornersCount = c.getCorners();
 
-			currentImage = processFrameButCooler(c.getCurrentFrame(), c.getGray(), false, harris);
+			//currentImage = processFrameButCooler(c.getCurrentFrame(), c.getGray(), false, harris);
+			currentImage = contourDraw(c.getCurrentFrame());
 			// currentImage = c.getCurrentFrame();
 			try {
 				Thread.sleep(20);
@@ -140,8 +143,8 @@ public class BigBrainCornerDetector {
 		Mat srcGray = new Mat();
 		Imgproc.cvtColor(src, srcGray, Imgproc.COLOR_BGR2GRAY);
 
-		//Mat srcGray = src;
-		
+		// Mat srcGray = src;
+
 		cornersCount = Math.max(cornersCount, 1);
 		MatOfPoint corners = new MatOfPoint();
 		double qualityLevel = 0.01;
@@ -174,9 +177,9 @@ public class BigBrainCornerDetector {
 	}
 
 	public static BufferedImage processFrameButCooler(BufferedImage img) {
-		return processFrameButCooler(img,false,false,false);
+		return processFrameButCooler(img, false, false, false);
 	}
-	
+
 	public static BufferedImage contraster(BufferedImage img) {
 		return img;
 	}
@@ -280,61 +283,43 @@ public class BigBrainCornerDetector {
 
 	@SuppressWarnings("unchecked")
 	public static BufferedImage noiseCancelling(BufferedImage img) {
-		System.out.println("bye bye noise");
-	//	var pts = getCornerData(img);
 
 		Mat src = BufferedImage2Mat(img);
 		Mat gray = new Mat();
 		Imgproc.cvtColor(src, gray, Imgproc.COLOR_BGR2GRAY);
 		Mat blur = new Mat();
-		Imgproc.GaussianBlur(gray, blur, new Size(9,9), 0);
+		Imgproc.GaussianBlur(gray, blur, new Size(9, 9), 0);
 		Mat thresh = new Mat();
-		Imgproc.threshold(blur,thresh, 0,255, Imgproc.THRESH_BINARY_INV + Imgproc.THRESH_OTSU);
-		
+		Imgproc.threshold(blur, thresh, 0, 255, Imgproc.THRESH_BINARY_INV + Imgproc.THRESH_OTSU);
+
 		Mat finale = new Mat();
 		Imgproc.cvtColor(thresh, finale, Imgproc.COLOR_GRAY2BGR);
-		BufferedImage img2 = Mat2BufferedImage(finale);
-		
-		//next step: find a way to only keep the middle
-		
-		Mat kernel = new Mat();
+
 		Mat close = new Mat();
-		
-//		Mat close3 = new Mat();
-//		kernel = Imgproc.getStructuringElement(Imgproc.MORPH_RECT, new Size(5,5));
-//		Imgproc.morphologyEx(thresh, close3, Imgproc.MORPH_CLOSE, kernel);
-//		
+
 		thresh.copyTo(close);
-		
+
 		Mat close2 = new Mat();
 		Imgproc.Canny(close, close2, 90, 150);
-		
+
 		Mat hier = new Mat();
 		List<MatOfPoint> points = new ArrayList<>();
 		Imgproc.findContours(close2, points, hier, Imgproc.RETR_EXTERNAL, Imgproc.CHAIN_APPROX_SIMPLE);
-		//Imgproc.drawContours(close2, points, -1, new Scalar(0,255,0), 3);
+		// Imgproc.drawContours(close2, points, -1, new Scalar(0,255,0), 3);
 		// important Imgproc.drawContours(finale, points, -1, new Scalar(0,255,0), 3);
-		
-		c.display(thresh, finale );
-		
-		//List<MatOfPoint> approxShapes = new ArrayList<>();
-		
-		for(int i=0;i<points.size();i++){
-		    //Convert contours(i) from MatOfPoint to MatOfPoint2f
+
+		for (int i = 0; i < points.size(); i++) {
+			// Convert contours(i) from MatOfPoint to MatOfPoint2f
 			MatOfPoint2f r = new MatOfPoint2f();
 			MatOfPoint2f tar = new MatOfPoint2f();
-		    points.get(i).convertTo(r, CvType.CV_32FC2);
-		    //Processing on mMOP2f1 which is in type MatOfPoint2f
-		    Imgproc.approxPolyDP(r, tar, 0.04 * Imgproc.arcLength(r, true), true); 
-		    //Convert back to MatOfPoint and put the new values back into the contours list
-		    tar.convertTo(points.get(i), CvType.CV_32S);
-		   
+			points.get(i).convertTo(r, CvType.CV_32FC2);
+			// Processing on mMOP2f1 which is in type MatOfPoint2f
+			Imgproc.approxPolyDP(r, tar, 0.04 * Imgproc.arcLength(r, true), true);
+			// Convert back to MatOfPoint and put the new values back into the contours list
+			tar.convertTo(points.get(i), CvType.CV_32S);
+
 		}
-		
-//		for(int i = 0; i < points.size(); i++) {
-//			Imgproc.drawContours(finale, points.subList(i, i+1), -1, new Scalar((int) (Math.random() * 255),(int) (Math.random() * 255),(int) (Math.random() * 255)), 3);
-//		}
-//		
+
 		Collections.sort(points, new Comparator() {
 
 			@Override
@@ -343,30 +328,214 @@ public class BigBrainCornerDetector {
 				MatOfPoint two = (MatOfPoint) o2;
 				double area1 = Imgproc.contourArea(one);
 				double area2 = Imgproc.contourArea(two);
-				
-				if(area1 > area2) {
+
+				if (area1 > area2) {
 					return 1;
-				} else if(area1 < area2) {
+				} else if (area1 < area2) {
 					return -1;
 				}
-				
-				
+
 				return 0;
 			}
-			
-		});
-	
-		MatOfPoint ppp = points.get(points.size() - 1);
-		Rect rect = Imgproc.boundingRect(ppp);
-	//	Imgproc.drawContours(finale, points.subList(points.size()-1, points.size()), -1, new Scalar((int) (Math.random() * 255),(int) (Math.random() * 255),(int) (Math.random() * 255)), 3);
-		Mat submat = new Mat(finale, rect);
-	  Imgproc.rectangle(finale, new Point(rect.x,rect.y), new Point(rect.x+rect.width,rect.y+rect.height), new Scalar(255,0,255), 3);
 
-		return processFrameButCooler(Mat2BufferedImage(submat));
+		});
+
+		MatOfPoint ppp = points.get(points.size() - 1);
+
+		Imgproc.drawContours(src, points.subList(points.size() - 1, points.size()), -1, new Scalar(255, 0, 0), 3);
+		var pts = ppp.toList();
+		// System.out.println(ppp.size()); This statement can verify that it is a square
+	//	System.out.println(pts);
+
+		if (pts.size() != 4) {
+			return Mat2BufferedImage(src);
+		} else {
+
+			Mat startM = vector_Point2f_to_Mat(pts);
+
+			Point aa = new Point(0, finale.height());
+			Point bb = new Point(finale.width(), finale.height());
+			Point cc = new Point(finale.width(), 0);
+			Point dd = new Point(0, 0);
+
+			Mat cropped = new Mat(finale.width(), finale.height(), CvType.CV_8UC4);
+			List<Point> dest = new ArrayList<Point>(Arrays.asList(aa, bb, cc, dd));
+
+			Mat endM = vector_Point2f_to_Mat(dest);
+
+			Mat perspectiveTransform = Imgproc.getPerspectiveTransform(startM, endM);
+
+			Imgproc.warpPerspective(finale, cropped, perspectiveTransform, new Size(finale.width(), finale.height()),
+					Imgproc.INTER_CUBIC);
+
+			 
+			return Mat2BufferedImage(cropped);
+		}
+
+		// return Mat2BufferedImage(src);
+
+		// return null;s
+	}
+
+	
+	@SuppressWarnings("unchecked")
+	public static BufferedImage contourDraw(BufferedImage img) {
+
+		Mat src = BufferedImage2Mat(img);
+		Mat gray = new Mat();
+		Imgproc.cvtColor(src, gray, Imgproc.COLOR_BGR2GRAY);
+		Mat blur = new Mat();
+		Imgproc.GaussianBlur(gray, blur, new Size(9, 9), 0);
+		Mat thresh = new Mat();
+		Imgproc.threshold(blur, thresh, 0, 255, Imgproc.THRESH_BINARY_INV + Imgproc.THRESH_OTSU);
+
+		Mat finale = new Mat();
+		Imgproc.cvtColor(thresh, finale, Imgproc.COLOR_GRAY2BGR);
+
+		Mat close = new Mat();
+
+		thresh.copyTo(close);
+
+		Mat close2 = new Mat();
+		Imgproc.Canny(close, close2, 90, 150);
+
+		Mat hier = new Mat();
+		List<MatOfPoint> points = new ArrayList<>();
+		Imgproc.findContours(close2, points, hier, Imgproc.RETR_EXTERNAL, Imgproc.CHAIN_APPROX_SIMPLE);
+		// Imgproc.drawContours(close2, points, -1, new Scalar(0,255,0), 3);
+		// important Imgproc.drawContours(finale, points, -1, new Scalar(0,255,0), 3);
+
+		for (int i = 0; i < points.size(); i++) {
+			// Convert contours(i) from MatOfPoint to MatOfPoint2f
+			MatOfPoint2f r = new MatOfPoint2f();
+			MatOfPoint2f tar = new MatOfPoint2f();
+			points.get(i).convertTo(r, CvType.CV_32FC2);
+			// Processing on mMOP2f1 which is in type MatOfPoint2f
+			Imgproc.approxPolyDP(r, tar, 0.04 * Imgproc.arcLength(r, true), true);
+			// Convert back to MatOfPoint and put the new values back into the contours list
+			tar.convertTo(points.get(i), CvType.CV_32S);
+
+		}
+
+		Collections.sort(points, new Comparator() {
+
+			@Override
+			public int compare(Object o1, Object o2) {
+				MatOfPoint one = (MatOfPoint) o1;
+				MatOfPoint two = (MatOfPoint) o2;
+				double area1 = Imgproc.contourArea(one);
+				double area2 = Imgproc.contourArea(two);
+
+				if (area1 > area2) {
+					return 1;
+				} else if (area1 < area2) {
+					return -1;
+				}
+
+				return 0;
+			}
+
+		});
+
+		MatOfPoint ppp = points.get(points.size() - 1);
+
+		Imgproc.drawContours(src, points.subList(points.size() - 1, points.size()), -1, new Scalar(255, 0, 0), 3);
+		var pts = ppp.toList();
+		// System.out.println(ppp.size()); This statement can verify that it is a square
+	//	System.out.println(pts);
+
 		
+			 
+			return Mat2BufferedImage(src);
+
+	}
+
+	
+	
+	public static boolean[][] cropToCode(BufferedImage img) {
+	//	Graphics g = img.getGraphics();
+	//	g.setColor(Color.green);
+		boolean[][] output = new boolean[7][7];
+
+		for(int i = 85; i < 600; i+= 80) {
+			for(int j = 70; j < 450; j+= 59) {
+		//	g.fillRect(i-10, j-10, 10, 10);
+				
+				//pic is inverted so white is true;
+				output[(i-85)/80][(j-70)/59] = isWhite(img.getRGB(i, j));
+				
+			}
+	
+		}
+		//MappingUtil util = new MappingUtil();
+		//util.displayJR(output);
+		//c.display(img);
+		return output;
 		
-		//return null;
 	}
 	
 	
+	private static boolean isWhite(int rgb) {
+		Color c = new Color(rgb);
+		if(c.getRed() > 100 && c.getBlue() > 100) {
+			return true;
+		}
+		
+		return false;
+	}
+
+	public static Mat vector_Point2f_to_Mat(List<Point> pts) {
+		return vector_Point_to_Mat(pts, CvType.CV_32F);
+	}
+
+	public static Mat vector_Point_to_Mat(List<Point> pts, int typeDepth) {
+		Mat res;
+		int count = (pts != null) ? pts.size() : 0;
+		if (count > 0) {
+			switch (typeDepth) {
+			case CvType.CV_32S: {
+				res = new Mat(count, 1, CvType.CV_32SC2);
+				int[] buff = new int[count * 2];
+				for (int i = 0; i < count; i++) {
+					Point p = pts.get(i);
+					buff[i * 2] = (int) p.x;
+					buff[i * 2 + 1] = (int) p.y;
+				}
+				res.put(0, 0, buff);
+			}
+				break;
+
+			case CvType.CV_32F: {
+				res = new Mat(count, 1, CvType.CV_32FC2);
+				float[] buff = new float[count * 2];
+				for (int i = 0; i < count; i++) {
+					Point p = pts.get(i);
+					buff[i * 2] = (float) p.x;
+					buff[i * 2 + 1] = (float) p.y;
+				}
+				res.put(0, 0, buff);
+			}
+				break;
+
+			case CvType.CV_64F: {
+				res = new Mat(count, 1, CvType.CV_64FC2);
+				double[] buff = new double[count * 2];
+				for (int i = 0; i < count; i++) {
+					Point p = pts.get(i);
+					buff[i * 2] = p.x;
+					buff[i * 2 + 1] = p.y;
+				}
+				res.put(0, 0, buff);
+			}
+				break;
+
+			default:
+				throw new IllegalArgumentException("'typeDepth' can be CV_32S, CV_32F or CV_64F");
+			}
+		} else {
+			res = new Mat();
+		}
+		return res;
+	}
+
 }

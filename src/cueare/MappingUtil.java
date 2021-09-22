@@ -5,6 +5,7 @@ import java.awt.FlowLayout;
 import java.awt.Graphics;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
+import java.util.Arrays;
 
 import javax.swing.ImageIcon;
 import javax.swing.JFrame;
@@ -17,7 +18,7 @@ public class MappingUtil {
 	public String alphabet;
 
 	public MappingUtil() {
-		alphabet = nums + abc.toUpperCase() + abc;
+		alphabet = nums + abc.toUpperCase() + abc + "%";
 	}
 
 	public boolean[][] encode(String text) {
@@ -61,7 +62,16 @@ public class MappingUtil {
 		spec[5][1] = true;
 		spec[5][5] = true;
 
-		String ee = Integer.toBinaryString(sum % 8);
+		int newSum = 0;
+		for (boolean[] e : spec) {
+			for (boolean i : e) {
+				newSum += i ? 1 : 0;
+			}
+		}
+
+		System.out.println("Checksum encoded as " + (newSum % 8));
+
+		String ee = Integer.toBinaryString(newSum % 8);
 		ee = "0".repeat(3 - ee.length()) + ee;
 		// System.out.println(sum + " "+ sum%8 + " " + ee);
 
@@ -103,18 +113,37 @@ public class MappingUtil {
 			chars.add(i, bin);
 		}
 
-		sum = sum % 8;
+		int newSum = 0;
+		for (boolean[] e : spec) {
+			for (boolean i : e) {
+				newSum += i ? 1 : 0;
+			}
+		}
+		
+		boolean[] swap = chars.get(1);
+		swap[5] = spec[6][0];
+		swap = chars.get(6);
+		swap[5] = spec[6][6];
+
+
 		int correctSum = Integer
 				.parseInt("" + (spec[6][2] ? '1' : '0') + (spec[6][3] ? '1' : '0') + (spec[6][4] ? '1' : '0'), 2);
 
-		// System.out.println(sum + " " + correctSum);
+		String str = Integer.toBinaryString(correctSum);
+		int ct = (int) str.chars().filter(ch -> ch != '0').count();
 
-		if (correctSum != sum) {
+		newSum -= ct;
+		newSum = newSum % 8;
+
+	//	System.out.println(newSum + " " + correctSum);
+
+		if (correctSum != newSum) {
 			throw new Exception("Checksum invalid");
 		}
 
 		String output = "";
 		for (boolean[] c : chars) {
+			//System.out.println(Arrays.toString(c));
 			output += binToText(c);
 		}
 		return output;
@@ -159,7 +188,7 @@ public class MappingUtil {
 		}
 
 		assert count == 3 : "Orientation markers are invalid";
-	
+
 		int[] rots = { 0, 270, 90, 180 };
 		if (which == 0) {
 			return a;
@@ -191,14 +220,14 @@ public class MappingUtil {
 	}
 
 	public BufferedImage displayJR(boolean[][] spec) {
-		BufferedImage img = new BufferedImage(630, 630, BufferedImage.TYPE_INT_RGB);
+		BufferedImage img = new BufferedImage(660, 660, BufferedImage.TYPE_INT_RGB);
 		Graphics g = img.getGraphics();
-		g.fillRect(20, 20, 590, 590);
+		g.fillRect(30, 30, 600, 600);
 
 		for (int i = 0; i < spec.length; i++) {
 			for (int j = 0; j < spec[0].length; j++) {
 				g.setColor(spec[j][i] ? Color.black : Color.white);
-				g.fillRect(i * 80 + 35, j * 80 + 35, 80, 80);
+				g.fillRect(i * 80 + 45, j * 80 + 45, 80, 80);
 			}
 		}
 		display(img);
@@ -221,7 +250,7 @@ public class MappingUtil {
 	}
 
 	public void print(BufferedImage img) {
-		
+
 	}
-	
+
 }

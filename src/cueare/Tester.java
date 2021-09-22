@@ -11,6 +11,7 @@ public class Tester {
 //		util.display();
 
 	MappingUtil u = new MappingUtil();
+	System.out.println(u.alphabet.charAt(44));
 		OpenCV.loadLocally();
 		boolean[][] bool = u.encode("rishivr");
 //		// System.out.println(Arrays.toString(u.charToBinary('z')));
@@ -20,6 +21,8 @@ public class Tester {
 		}
 
 		u.displayJR(bool);
+		
+		System.out.println(u.decode(bool));
 
 
 	}
