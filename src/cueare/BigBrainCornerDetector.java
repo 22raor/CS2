@@ -69,7 +69,8 @@ public class BigBrainCornerDetector {
 			k = c.getConstant();
 			cornersCount = c.getCorners();
 
-			//currentImage = processFrameButCooler(c.getCurrentFrame(), c.getGray(), false, harris);
+			// currentImage = processFrameButCooler(c.getCurrentFrame(), c.getGray(), false,
+			// harris);
 			currentImage = contourDraw(c.getCurrentFrame());
 			// currentImage = c.getCurrentFrame();
 			try {
@@ -345,7 +346,7 @@ public class BigBrainCornerDetector {
 		Imgproc.drawContours(src, points.subList(points.size() - 1, points.size()), -1, new Scalar(255, 0, 0), 3);
 		var pts = ppp.toList();
 		// System.out.println(ppp.size()); This statement can verify that it is a square
-	//	System.out.println(pts);
+		// System.out.println(pts);
 
 		if (pts.size() != 4) {
 			return Mat2BufferedImage(src);
@@ -368,7 +369,6 @@ public class BigBrainCornerDetector {
 			Imgproc.warpPerspective(finale, cropped, perspectiveTransform, new Size(finale.width(), finale.height()),
 					Imgproc.INTER_CUBIC);
 
-			 
 			return Mat2BufferedImage(cropped);
 		}
 
@@ -377,7 +377,6 @@ public class BigBrainCornerDetector {
 		// return null;s
 	}
 
-	
 	@SuppressWarnings("unchecked")
 	public static BufferedImage contourDraw(BufferedImage img) {
 
@@ -442,45 +441,40 @@ public class BigBrainCornerDetector {
 		Imgproc.drawContours(src, points.subList(points.size() - 1, points.size()), -1, new Scalar(255, 0, 0), 3);
 		var pts = ppp.toList();
 		// System.out.println(ppp.size()); This statement can verify that it is a square
-	//	System.out.println(pts);
+		// System.out.println(pts);
 
-		
-			 
-			return Mat2BufferedImage(src);
+		return Mat2BufferedImage(src);
 
 	}
 
-	
-	
 	public static boolean[][] cropToCode(BufferedImage img) {
-	//	Graphics g = img.getGraphics();
-	//	g.setColor(Color.green);
+		// Graphics g = img.getGraphics();
+		// g.setColor(Color.green);
 		boolean[][] output = new boolean[7][7];
 
-		for(int i = 85; i < 600; i+= 80) {
-			for(int j = 70; j < 450; j+= 59) {
-		//	g.fillRect(i-10, j-10, 10, 10);
-				
-				//pic is inverted so white is true;
-				output[(i-85)/80][(j-70)/59] = isWhite(img.getRGB(i, j));
-				
+		for (int i = 85; i < 600; i += 80) {
+			for (int j = 70; j < 450; j += 59) {
+				// g.fillRect(i-10, j-10, 10, 10);
+
+				// pic is inverted so white is true;
+				output[(i - 85) / 80][(j - 70) / 59] = isWhite(img.getRGB(i, j));
+
 			}
-	
+
 		}
-		//MappingUtil util = new MappingUtil();
-		//util.displayJR(output);
-		//c.display(img);
+		// MappingUtil util = new MappingUtil();
+		// util.displayJR(output);
+		// c.display(img);
 		return output;
-		
+
 	}
-	
-	
+
 	private static boolean isWhite(int rgb) {
 		Color c = new Color(rgb);
-		if(c.getRed() > 100 && c.getBlue() > 100) {
+		if (c.getRed() > 100 && c.getBlue() > 100) {
 			return true;
 		}
-		
+
 		return false;
 	}
 

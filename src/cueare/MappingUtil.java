@@ -1,13 +1,23 @@
 package cueare;
 
 import java.awt.Color;
+import java.awt.Desktop;
+import java.awt.Dimension;
 import java.awt.FlowLayout;
+import java.awt.Font;
 import java.awt.Graphics;
+import java.awt.Image;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
+import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.net.URL;
 import java.util.ArrayList;
-import java.util.Arrays;
 
 import javax.swing.ImageIcon;
+import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 
@@ -23,7 +33,7 @@ public class MappingUtil {
 
 	public boolean[][] encode(String text) {
 
-		text = text + "0".repeat(7 - text.length());
+		text = text + "%".repeat(7 - text.length());
 
 		boolean[][] spec = new boolean[7][7];
 
@@ -157,7 +167,7 @@ public class MappingUtil {
 		}
 
 		int i = Integer.parseInt(j, 2);
-		return alphabet.charAt(i) + "";
+		return (alphabet.charAt(i) + "").replace("%", "");
 	}
 
 	public boolean[] charToBinary(char a) {
@@ -230,7 +240,7 @@ public class MappingUtil {
 				g.fillRect(i * 80 + 45, j * 80 + 45, 80, 80);
 			}
 		}
-		display(img);
+		displayWithInfo(spec, img.getScaledInstance(400,400, BufferedImage.SCALE_SMOOTH));
 		return img;
 	}
 
@@ -248,6 +258,58 @@ public class MappingUtil {
 
 		frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 	}
+
+	
+	String dec = "Decoded Message:  ";
+	public void displayWithInfo(boolean[][] spec, Image i) {
+		spec = this.orient(spec);
+		//String dec = "Decoded Message:  ";
+		try {
+			dec += this.decode(spec);
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			//e.printStackTrace();
+			System.err.print(e);
+		}
+		
+		JLabel lab = new JLabel(dec);
+		
+		lab.setFont(new Font("Trebuchet MS", Font.PLAIN, 15));
+		
+		JButton openSite = new JButton("Open Bit.ly Site");
+		
+		openSite.addMouseListener(new MouseAdapter() {
+			@Override
+			public void mouseClicked(MouseEvent e) {
+				String site = "https://www.bit.ly/" + MappingUtil.this.dec;
+				try {
+					Desktop.getDesktop().browse(new URI(site));
+				} catch (Exception ee) {
+					
+				}
+			}
+
+		});
+		
+//		System.out.println(dec + " yeet");
+		JFrame frame = new JFrame();
+		frame.getContentPane().setLayout(new FlowLayout());
+		
+		frame.setPreferredSize(new Dimension(1000, 580));
+	//	frame.setPreferredSize(new Dimension(1000,680));
+
+		
+			frame.getContentPane().add(new JLabel(new ImageIcon(i)));
+		
+		frame.add(lab);
+
+		frame.pack();
+		// frame.setExtendedState(JFrame.MAXIMIZED_BOTH);
+		frame.setVisible(true);
+
+		frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+	}
+
 
 	public void print(BufferedImage img) {
 

@@ -37,7 +37,7 @@ public class CameraUtil {
 	static boolean mirror = true;
 
 	static boolean noiseCancel = true;
-	
+
 	static Java2DFrameConverter conv = new Java2DFrameConverter();
 	CanvasFrame canvas;
 
@@ -53,7 +53,7 @@ public class CameraUtil {
 	JCheckBox gray;
 	JTextArea mouseCoords = new JTextArea("x: y: ");
 	MappingUtil util;
-	
+
 	public CameraUtil() {
 		util = new MappingUtil();
 		try {
@@ -151,6 +151,7 @@ public class CameraUtil {
 
 		frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 	}
+
 	public void display(Mat... img) {
 		JFrame frame = new JFrame();
 		frame.getContentPane().setLayout(new FlowLayout());
@@ -259,16 +260,15 @@ public class CameraUtil {
 								BufferedImage res = rescale(
 										BigBrainCornerDetector.noiseCancelling(CameraUtil.this.getCurrentFrame(true)));
 								display(res);
-								
-										
-										boolean[][] finalOutput = util.orient(BigBrainCornerDetector.cropToCode(res));
-										util.displayJR(finalOutput);
-										try {
-											System.out.println(util.decode(finalOutput));
-										} catch (Exception e1) {
-											// TODO Auto-generated catch block
-											e1.printStackTrace();
-										}
+
+								boolean[][] finalOutput = util.orient(BigBrainCornerDetector.cropToCode(res));
+								util.displayJR(finalOutput);
+								try {
+									System.out.println(util.decode(finalOutput));
+								} catch (Exception e1) {
+									// TODO Auto-generated catch block
+									//e1.printStackTrace();
+								}
 							} else {
 								display(rescale(BigBrainCornerDetector.processFrameButCooler(
 										CameraUtil.this.getCurrentFrame(), false, true, harris)));
@@ -371,7 +371,7 @@ public class CameraUtil {
 	public BufferedImage rescale(BufferedImage img) {
 		return this.toBufferedImage(img.getScaledInstance(640, 480, this.scaleMethod));
 	}
-	
+
 	public BufferedImage rescale(BufferedImage img, int scaleMethod) {
 		return this.toBufferedImage(img.getScaledInstance(640, 480, scaleMethod));
 	}
