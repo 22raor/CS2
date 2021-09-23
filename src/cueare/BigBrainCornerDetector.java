@@ -1,7 +1,6 @@
 package cueare;
 
 import java.awt.Color;
-import java.awt.Graphics;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -369,6 +368,9 @@ public class BigBrainCornerDetector {
 			Imgproc.warpPerspective(finale, cropped, perspectiveTransform, new Size(finale.width(), finale.height()),
 					Imgproc.INTER_CUBIC);
 
+			Mat kernel = Imgproc.getStructuringElement(Imgproc.MORPH_RECT, new Size((2 * 2) + 1, (2 * 2) + 1));
+			Imgproc.dilate(cropped, cropped, kernel);
+
 			return Mat2BufferedImage(cropped);
 		}
 
@@ -469,7 +471,7 @@ public class BigBrainCornerDetector {
 
 	}
 
-	private static boolean isWhite(int rgb) {
+	static boolean isWhite(int rgb) {
 		Color c = new Color(rgb);
 		if (c.getRed() > 100 && c.getBlue() > 100) {
 			return true;

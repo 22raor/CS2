@@ -20,7 +20,7 @@ public class Tester {
 			System.out.println(Arrays.toString(a));
 		}
 
-		u.displayJR(bool);
+		u.display(u.displayJR(bool, false));
 		
 		System.out.println(u.decode(bool));
 

@@ -129,12 +129,11 @@ public class MappingUtil {
 				newSum += i ? 1 : 0;
 			}
 		}
-		
+
 		boolean[] swap = chars.get(1);
 		swap[5] = spec[6][0];
 		swap = chars.get(6);
 		swap[5] = spec[6][6];
-
 
 		int correctSum = Integer
 				.parseInt("" + (spec[6][2] ? '1' : '0') + (spec[6][3] ? '1' : '0') + (spec[6][4] ? '1' : '0'), 2);
@@ -145,7 +144,7 @@ public class MappingUtil {
 		newSum -= ct;
 		newSum = newSum % 8;
 
-	//	System.out.println(newSum + " " + correctSum);
+		// System.out.println(newSum + " " + correctSum);
 
 		if (correctSum != newSum) {
 			throw new Exception("Checksum invalid");
@@ -153,7 +152,7 @@ public class MappingUtil {
 
 		String output = "";
 		for (boolean[] c : chars) {
-			//System.out.println(Arrays.toString(c));
+			// System.out.println(Arrays.toString(c));
 			output += binToText(c);
 		}
 		return output;
@@ -229,20 +228,25 @@ public class MappingUtil {
 		return ret;
 	}
 
-	public BufferedImage displayJR(boolean[][] spec) {
-		BufferedImage img = new BufferedImage(660, 660, BufferedImage.TYPE_INT_RGB);
+	public BufferedImage displayJR(boolean[][] spec, boolean jFrame) {
+		BufferedImage img = new BufferedImage(680, 680, BufferedImage.TYPE_INT_RGB); //old: 660 660
 		Graphics g = img.getGraphics();
-		g.fillRect(30, 30, 600, 600);
+		g.fillRect(40, 40, 600, 600); //old: 30,30 
 
 		for (int i = 0; i < spec.length; i++) {
 			for (int j = 0; j < spec[0].length; j++) {
 				g.setColor(spec[j][i] ? Color.black : Color.white);
-				g.fillRect(i * 80 + 45, j * 80 + 45, 80, 80);
+				g.fillRect(i * 80 + 55, j * 80 + 55, 80, 80); //old 45 45
 			}
 		}
-		displayWithInfo(spec, img.getScaledInstance(400,400, BufferedImage.SCALE_SMOOTH));
+		if(jFrame) {
+			displayWithInfo(spec, img.getScaledInstance(400, 400, BufferedImage.SCALE_SMOOTH));
+
+		}
 		return img;
 	}
+	
+	
 
 	public void display(BufferedImage... img) {
 		JFrame frame = new JFrame();
@@ -259,57 +263,60 @@ public class MappingUtil {
 		frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 	}
 
-	
 	String dec = "Decoded Message:  ";
+	String msg = "";
+
 	public void displayWithInfo(boolean[][] spec, Image i) {
+
+		dec = "Decoded Message:  ";
+
 		spec = this.orient(spec);
-		//String dec = "Decoded Message:  ";
+		// String dec = "Decoded Message: ";
 		try {
-			dec += this.decode(spec);
+			msg = this.decode(spec);
+			dec += msg;
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
-			//e.printStackTrace();
+			// e.printStackTrace();
 			System.err.print(e);
 		}
-		
+
 		JLabel lab = new JLabel(dec);
-		
+
 		lab.setFont(new Font("Trebuchet MS", Font.PLAIN, 15));
-		
+
 		JButton openSite = new JButton("Open Bit.ly Site");
-		
+
 		openSite.addMouseListener(new MouseAdapter() {
 			@Override
 			public void mouseClicked(MouseEvent e) {
-				String site = "https://www.bit.ly/" + MappingUtil.this.dec;
+				String site = "https://www.bit.ly/" + MappingUtil.this.msg;
 				try {
 					Desktop.getDesktop().browse(new URI(site));
 				} catch (Exception ee) {
-					
+					ee.printStackTrace();
 				}
 			}
 
 		});
-		
+
 //		System.out.println(dec + " yeet");
 		JFrame frame = new JFrame();
 		frame.getContentPane().setLayout(new FlowLayout());
-		
+
 		frame.setPreferredSize(new Dimension(1000, 580));
-	//	frame.setPreferredSize(new Dimension(1000,680));
+		// frame.setPreferredSize(new Dimension(1000,680));
 
-		
-			frame.getContentPane().add(new JLabel(new ImageIcon(i)));
-		
+		frame.getContentPane().add(new JLabel(new ImageIcon(i)));
+
 		frame.add(lab);
-
+		frame.add(openSite);
 		frame.pack();
 		// frame.setExtendedState(JFrame.MAXIMIZED_BOTH);
 		frame.setVisible(true);
 
 		frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 	}
-
 
 	public void print(BufferedImage img) {
 

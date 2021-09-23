@@ -1,5 +1,6 @@
 package cueare;
 
+import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Graphics2D;
@@ -61,7 +62,7 @@ public class CameraUtil {
 
 			grabber.start();
 			System.out.println("Initializing frame capture at " + grabber.getFrameRate() + " FPS...");
-			System.out.println(grabber.grab().imageWidth + " " + grabber.grab().imageHeight);
+			System.out.println("Image Dimensions: " + grabber.grab().imageWidth + "x" + grabber.grab().imageHeight);
 			UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -118,7 +119,7 @@ public class CameraUtil {
 
 					// Java2DFrameConverter conv = new Java2DFrameConverter();
 					display(CameraUtil.this.getCurrentFrame());
-					System.out.println("selfie");
+					// System.out.println("selfie");
 				}
 			});
 
@@ -198,7 +199,7 @@ public class CameraUtil {
 	}
 
 	public void initializeManualDisplay(boolean harris) {
-		JButton bigButt = new JButton("Selfie");
+		JButton bigButt = new JButton("Scan");
 
 		bigButt.setSize(20, 10);
 
@@ -259,16 +260,10 @@ public class CameraUtil {
 							if (noiseCancel) {
 								BufferedImage res = rescale(
 										BigBrainCornerDetector.noiseCancelling(CameraUtil.this.getCurrentFrame(true)));
-								display(res);
-
 								boolean[][] finalOutput = util.orient(BigBrainCornerDetector.cropToCode(res));
-								util.displayJR(finalOutput);
-								try {
-									System.out.println(util.decode(finalOutput));
-								} catch (Exception e1) {
-									// TODO Auto-generated catch block
-									//e1.printStackTrace();
-								}
+								util.displayJR(finalOutput, true);
+								display(invert(res));
+
 							} else {
 								display(rescale(BigBrainCornerDetector.processFrameButCooler(
 										CameraUtil.this.getCurrentFrame(), false, true, harris)));
@@ -418,4 +413,27 @@ public class CameraUtil {
 
 		return bimage;
 	}
+
+	public BufferedImage invert(BufferedImage img) {
+		// Graphics g = img.getGraphics();
+		for (int i = 0; i < img.getWidth(); i++) {
+			for (int j = 0; j < img.getHeight(); j++) {
+				int b = img.getRGB(i, j);
+				if (BigBrainCornerDetector.isWhite(b)) {
+					img.setRGB(i, j, Color.black.getRGB());
+				} else {
+					img.setRGB(i, j, Color.white.getRGB());
+				}
+
+			}
+		}
+
+		AffineTransform tx = AffineTransform.getScaleInstance(-1, 1);
+		tx.translate(-img.getWidth(null), 0);
+		AffineTransformOp op = new AffineTransformOp(tx, AffineTransformOp.TYPE_NEAREST_NEIGHBOR);
+		img = op.filter(img, null);
+
+		return img;
+	}
+
 }
