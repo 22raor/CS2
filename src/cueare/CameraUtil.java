@@ -261,8 +261,9 @@ public class CameraUtil {
 								BufferedImage res = rescale(
 										BigBrainCornerDetector.noiseCancelling(CameraUtil.this.getCurrentFrame(true)));
 								boolean[][] finalOutput = util.orient(BigBrainCornerDetector.cropToCode(res));
-								util.displayJR(finalOutput, true);
+
 								display(invert(res));
+								util.displayJR(finalOutput, true);
 
 							} else {
 								display(rescale(BigBrainCornerDetector.processFrameButCooler(

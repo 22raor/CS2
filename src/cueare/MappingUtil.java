@@ -6,26 +6,40 @@ import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.Graphics;
+import java.awt.GridLayout;
 import java.awt.Image;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
-import java.io.IOException;
 import java.net.URI;
-import java.net.URISyntaxException;
-import java.net.URL;
 import java.util.ArrayList;
+import java.util.Arrays;
 
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JTextField;
+import javax.swing.UIManager;
 
 public class MappingUtil {
 
 	public String nums = "0123456789";
 	public String abc = "abcdefghijklmnopqrstuvwxyz";
 	public String alphabet;
+
+	public static void main(String... args) {
+		try {
+
+			UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		MappingUtil u = new MappingUtil();
+
+		u.encodeAndDisplay();
+	}
 
 	public MappingUtil() {
 		alphabet = nums + abc.toUpperCase() + abc + "%";
@@ -47,6 +61,11 @@ public class MappingUtil {
 			for (int j = 0; j < 6; j++) {
 				spec[j][i] = bin[j];
 				sum += bin[j] ? 1 : 0;
+
+				if (j == 5 && i == 6) {
+					// System.out.println(Arrays.toString(bin));
+				}
+
 			}
 
 		}
@@ -79,7 +98,7 @@ public class MappingUtil {
 			}
 		}
 
-		System.out.println("Checksum encoded as " + (newSum % 8));
+		// System.out.println("Checksum encoded as " + (newSum % 8));
 
 		String ee = Integer.toBinaryString(newSum % 8);
 		ee = "0".repeat(3 - ee.length()) + ee;
@@ -105,6 +124,11 @@ public class MappingUtil {
 			for (int j = 0; j < 6; j++) {
 				bin[j] = spec[j][i];
 				sum += spec[j][i] ? 1 : 0;
+
+				if (j == 5 && i == 6) {
+					// System.out.println(Arrays.toString(bin));
+				}
+
 			}
 			chars.add(bin);
 
@@ -118,7 +142,7 @@ public class MappingUtil {
 				sum += spec[j][i] ? 1 : 0;
 				ind++;
 			}
-			bin[5] = i == 2 ? spec[6][0] : spec[6][6];
+			bin[5] = i == 2 ? spec[6][0] : spec[6][6]; // here???
 			sum += (spec[6][0] ? 1 : 0) + (spec[6][6] ? 1 : 0);
 			chars.add(i, bin);
 		}
@@ -132,7 +156,7 @@ public class MappingUtil {
 
 		boolean[] swap = chars.get(1);
 		swap[5] = spec[6][0];
-		swap = chars.get(6);
+		swap = chars.get(6).clone();
 		swap[5] = spec[6][6];
 
 		int correctSum = Integer
@@ -159,7 +183,7 @@ public class MappingUtil {
 
 	}
 
-	private String binToText(boolean[] c) {
+	String binToText(boolean[] c) {
 		String j = "";
 		for (boolean a : c) {
 			j += a ? 1 : 0;
@@ -228,25 +252,74 @@ public class MappingUtil {
 		return ret;
 	}
 
+	public void encodeAndDisplay() {
+
+		JFrame frame = new JFrame();
+		frame.getContentPane().setLayout(new FlowLayout());
+
+		frame.setPreferredSize(new Dimension(1000, 580));
+		BufferedImage img = new BufferedImage(400, 400, BufferedImage.TYPE_INT_ARGB);
+
+		JPanel p = new JPanel();
+		p.add(new JLabel(new ImageIcon(img)));
+
+		frame.add(p);
+		JButton openSite = new JButton("Encode Link");
+
+		JTextField linkInput = new JTextField();
+		linkInput.setPreferredSize(new Dimension(120, 30));
+		frame.add(linkInput);
+		frame.add(openSite);
+		openSite.addMouseListener(new MouseAdapter() {
+			@Override
+			public void mouseClicked(MouseEvent e) {
+				String toEncode = linkInput.getText();
+
+				if (toEncode.contains(".")) {
+					toEncode = BitlyManager.getURL(toEncode);
+					// System.out.println(toEncode);
+				}
+
+				Image encoded = displayJR(encode(toEncode), false);
+
+				encoded = encoded.getScaledInstance(400, 400, BufferedImage.SCALE_SMOOTH);
+
+				p.removeAll();
+				p.add(new JLabel(new ImageIcon(encoded)));
+				p.repaint();
+				frame.repaint();
+				// frame.update(frame.getGraphics());
+				frame.revalidate();
+
+				// BigBrainCornerDetector.main("");
+			}
+
+		});
+
+		frame.pack();
+		frame.setVisible(true);
+
+		frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+
+	}
+
 	public BufferedImage displayJR(boolean[][] spec, boolean jFrame) {
-		BufferedImage img = new BufferedImage(680, 680, BufferedImage.TYPE_INT_RGB); //old: 660 660
+		BufferedImage img = new BufferedImage(680, 680, BufferedImage.TYPE_INT_RGB); // old: 660 660
 		Graphics g = img.getGraphics();
-		g.fillRect(40, 40, 600, 600); //old: 30,30 
+		g.fillRect(40, 40, 600, 600); // old: 30,30
 
 		for (int i = 0; i < spec.length; i++) {
 			for (int j = 0; j < spec[0].length; j++) {
 				g.setColor(spec[j][i] ? Color.black : Color.white);
-				g.fillRect(i * 80 + 55, j * 80 + 55, 80, 80); //old 45 45
+				g.fillRect(i * 80 + 55, j * 80 + 55, 80, 80); // old 45 45
 			}
 		}
-		if(jFrame) {
+		if (jFrame) {
 			displayWithInfo(spec, img.getScaledInstance(400, 400, BufferedImage.SCALE_SMOOTH));
 
 		}
 		return img;
 	}
-	
-	
 
 	public void display(BufferedImage... img) {
 		JFrame frame = new JFrame();
