@@ -280,7 +280,7 @@ public class MappingUtil {
 					// System.out.println(toEncode);
 				}
 
-				Image encoded = displayJR(encode(toEncode), false);
+				Image encoded = specToImage(encode(toEncode), false);
 
 				encoded = encoded.getScaledInstance(400, 400, BufferedImage.SCALE_SMOOTH);
 
@@ -303,7 +303,7 @@ public class MappingUtil {
 
 	}
 
-	public BufferedImage displayJR(boolean[][] spec, boolean jFrame) {
+	public BufferedImage specToImage(boolean[][] spec, boolean jFrame) {
 		BufferedImage img = new BufferedImage(680, 680, BufferedImage.TYPE_INT_RGB); // old: 660 660
 		Graphics g = img.getGraphics();
 		g.fillRect(40, 40, 600, 600); // old: 30,30

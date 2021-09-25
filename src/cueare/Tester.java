@@ -2,6 +2,8 @@ package cueare;
 
 import javax.swing.UIManager;
 
+import util.BufferedLoader;
+
 public class Tester {
 
 	public static void main(String[] args) throws Exception {
@@ -13,7 +15,13 @@ public class Tester {
 		}
 	MappingUtil u = new MappingUtil();
 
-	u.encodeAndDisplay();
+	var b = u.encode("abcdefg");
+	BufferedLoader bb = new BufferedLoader();
+	
+	bb.printImage(u.specToImage(b, false), 0, 0);
+	
+	
+	//u.encodeAndDisplay();
 	
 
 	}

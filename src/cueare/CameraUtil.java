@@ -263,7 +263,7 @@ public class CameraUtil {
 								boolean[][] finalOutput = util.orient(BigBrainCornerDetector.cropToCode(res));
 
 								display(invert(res));
-								util.displayJR(finalOutput, true);
+								util.specToImage(finalOutput, true);
 
 							} else {
 								display(rescale(BigBrainCornerDetector.processFrameButCooler(
