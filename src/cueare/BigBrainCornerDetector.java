@@ -40,11 +40,14 @@ public class BigBrainCornerDetector {
 	static int minDistance = 20;
 	static boolean harris = false;
 
+	
+	
+	
 	// Enable checking of number of sides for contours
 	static boolean beta = false;
 
 	// dont conv to blackwhite
-	static boolean grayLol = false;
+	static boolean grayLol = true;
 
 	public static void main(String... args) {
 		OpenCV.loadLocally();
@@ -129,6 +132,7 @@ public class BigBrainCornerDetector {
 		return Mat2BufferedImage(gray ? dstNormScaled : src);
 	}
 
+	
 	static Random rng = new Random();
 
 	public static BufferedImage processShiTomasi(BufferedImage currentFrame, boolean gray, boolean printLocs,
@@ -263,7 +267,7 @@ public class BigBrainCornerDetector {
 		Mat gray = new Mat();
 		Imgproc.cvtColor(src, gray, Imgproc.COLOR_BGR2GRAY);
 		Mat blur = new Mat();
-		Imgproc.GaussianBlur(gray, blur, new Size(3, 3), 0);
+		Imgproc.blur(gray, blur, new Size(3, 3));
 		Mat thresh = new Mat();
 		Imgproc.threshold(blur, thresh, 0, 255, Imgproc.THRESH_BINARY_INV + Imgproc.THRESH_OTSU);
 
@@ -315,7 +319,8 @@ public class BigBrainCornerDetector {
 
 		});
 
-		MatOfPoint ppp = points.get(points.size() - 1);
+		
+		MatOfPoint ppp = points.size() > 0 ?  points.get(points.size() - 1)  : new MatOfPoint();
 
 		if (beta && points.size() > 3) {
 			for (MatOfPoint punto : points.subList(points.size() - 3, points.size())) {
@@ -335,7 +340,11 @@ public class BigBrainCornerDetector {
 		var pts = ppp.toList();
 
 		if (contourDraw || pts.size() != 4) {
-			Imgproc.drawContours(src, List.of(ppp), -1, new Scalar(255, 0, 0), 3);
+			
+			if(pts.size() == 4) {
+				Imgproc.drawContours(src, List.of(ppp), -1, new Scalar(255, 0, 0), 3);
+			}
+			
 
 			return Mat2BufferedImage(src);
 		} else {
@@ -356,7 +365,7 @@ public class BigBrainCornerDetector {
 
 			Imgproc.warpPerspective(finale, cropped, perspectiveTransform, new Size(finale.width(), finale.height()),
 					Imgproc.INTER_CUBIC);
-
+			
 			Mat kernel = Imgproc.getStructuringElement(Imgproc.MORPH_RECT, new Size((2 * 2) + 1, (2 * 2) + 1));
 			Imgproc.dilate(cropped, cropped, kernel);
 

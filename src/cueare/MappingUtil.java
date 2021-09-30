@@ -23,6 +23,8 @@ import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.UIManager;
 
+import util.BufferedLoader;
+
 public class MappingUtil {
 
 	public String nums = "0123456789";
@@ -253,12 +255,19 @@ public class MappingUtil {
 		return ret;
 	}
 
+	
+	Image encoded;
+	BufferedLoader b = new BufferedLoader();
+	
 	public void encodeAndDisplay() {
 
 		JFrame frame = new JFrame();
 		frame.getContentPane().setLayout(new FlowLayout());
 
-		frame.setPreferredSize(new Dimension(1000, 580));
+		frame.setPreferredSize(new Dimension(650, 500));
+		frame.setLocation(722, 240);
+		
+		
 		BufferedImage img = new BufferedImage(400, 400, BufferedImage.TYPE_INT_ARGB);
 
 		JPanel p = new JPanel();
@@ -266,11 +275,14 @@ public class MappingUtil {
 
 		frame.add(p);
 		JButton openSite = new JButton("Encode Link");
+		
+		JButton print = new JButton("Print");
 
 		JTextField linkInput = new JTextField();
 		linkInput.setPreferredSize(new Dimension(120, 30));
 		frame.add(linkInput);
 		frame.add(openSite);
+		frame.add(print);
 		openSite.addMouseListener(new MouseAdapter() {
 			@Override
 			public void mouseClicked(MouseEvent e) {
@@ -281,7 +293,7 @@ public class MappingUtil {
 					// System.out.println(toEncode);
 				}
 
-				Image encoded = specToImage(encode(toEncode), false);
+			 encoded = specToImage(encode(toEncode), false);
 
 				encoded = encoded.getScaledInstance(400, 400, BufferedImage.SCALE_SMOOTH);
 
@@ -297,6 +309,8 @@ public class MappingUtil {
 
 		});
 
+		print.addActionListener(e -> b.printImage(BufferedLoader.toBufferedImage(encoded)));
+		
 		frame.pack();
 		frame.setVisible(true);
 
@@ -394,8 +408,5 @@ public class MappingUtil {
 		frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 	}
 
-	public void print(BufferedImage img) {
-
-	}
 
 }

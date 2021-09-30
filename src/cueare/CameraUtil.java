@@ -1,16 +1,21 @@
 package cueare;
 
+import java.awt.AWTException;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Graphics2D;
+import java.awt.HeadlessException;
 import java.awt.Image;
+import java.awt.Rectangle;
+import java.awt.Robot;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseMotionListener;
 import java.awt.geom.AffineTransform;
 import java.awt.image.AffineTransformOp;
 import java.awt.image.BufferedImage;
+import java.awt.Toolkit;
 
 import javax.swing.BorderFactory;
 import javax.swing.ImageIcon;
@@ -38,7 +43,8 @@ public class CameraUtil {
 	static boolean mirror = true;
 
 	static boolean noiseCancel = true;
-
+	static boolean screenCaptureBool = false;
+	
 	static Java2DFrameConverter conv = new Java2DFrameConverter();
 	CanvasFrame canvas;
 
@@ -51,15 +57,19 @@ public class CameraUtil {
 	JSlider constant;
 	JSlider corners;
 
-	JCheckBox gray;
+	JButton screenCapture;
 	JTextArea mouseCoords = new JTextArea("x: y: ");
 	MappingUtil util;
 
+	Robot r;
+	
 	public CameraUtil() {
+	
+		
 		util = new MappingUtil();
 		try {
 			grabber = new OpenCVFrameGrabber(0);
-
+			r = new Robot();
 			grabber.start();
 			System.out.println("Initializing frame capture at " + grabber.getFrameRate() + " FPS...");
 			System.out.println("Image Dimensions: " + grabber.grab().imageWidth + "x" + grabber.grab().imageHeight);
@@ -168,10 +178,26 @@ public class CameraUtil {
 		frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 	}
 
+	
 	public BufferedImage getCurrentFrame(boolean mirror) {
+		
+
+		BufferedImage img = null;
+		
 		try {
 
-			BufferedImage img = conv.convert(grabber.grab());
+			if(this.getScreenCapture()) {
+			
+				img = r.createScreenCapture(new Rectangle(1366-641,768-481,640,480));
+				
+			
+				
+			} else {
+				img = conv.convert(grabber.grab());
+			}
+			
+			
+			
 
 			if (downScale) {
 				img = this.toBufferedImage(img.getScaledInstance((int) (img.getWidth() / CameraUtil.downScaleFactor),
@@ -224,7 +250,7 @@ public class CameraUtil {
 		corners = new JSlider(0, 100, BigBrainCornerDetector.cornersCount);
 		corners.setBorder(BorderFactory.createTitledBorder("Yeet LOL"));
 
-		gray = new JCheckBox("Gray?");
+		screenCapture = new JButton("Screen Capture?");
 
 		try {
 			frame = this.getCurrentFrame();
@@ -262,7 +288,7 @@ public class CameraUtil {
 										BigBrainCornerDetector.contourProcess(CameraUtil.this.getCurrentFrame(true), false));
 								boolean[][] finalOutput = util.orient(BigBrainCornerDetector.cropToCode(res));
 
-								display(invert(res));
+								//display(invert(res));  //uncomment if u want to see raw image
 								util.specToImage(finalOutput, true);
 
 							} else {
@@ -298,6 +324,21 @@ public class CameraUtil {
 				}
 			});
 
+			screenCapture.addActionListener(e ->{ 
+				screenCaptureBool = !screenCaptureBool;
+				mirror = !mirror;
+				
+				if(canvas.getWidth() > 800) {
+					canvas.setPreferredSize(new Dimension(720,635));
+				} else {
+					canvas.setPreferredSize(new Dimension(1222, 580));
+				}
+				canvas.revalidate();
+				canvas.pack();
+					
+			}
+			);
+			
 			MouseMotionListener m = new MouseMotionListener() {
 				@Override
 				public void mouseDragged(MouseEvent e) {
@@ -332,8 +373,10 @@ public class CameraUtil {
 
 			canvas.add(constant);
 			canvas.add(corners);
-			canvas.add(gray);
+			canvas.add(screenCapture);
 			canvas.pack();
+			
+			canvas.setLocation(10, 10);
 			// canvas.showImage(frame);
 
 			canvas.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -369,8 +412,8 @@ public class CameraUtil {
 		return this.toBufferedImage(img.getScaledInstance(640, 480, scaleMethod));
 	}
 
-	public boolean getGray() {
-		return gray.isSelected();
+	public boolean getScreenCapture() {
+		return screenCaptureBool;
 	}
 
 	public int getThreshold() {

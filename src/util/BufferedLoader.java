@@ -21,7 +21,7 @@ import javax.swing.JLabel;
  */
 public class BufferedLoader {
 
-	public void printImage(BufferedImage img, int width, int height) {
+	public void printImage(BufferedImage img) {
 		
 		PrintActionListener m = new PrintActionListener(img);
 		
