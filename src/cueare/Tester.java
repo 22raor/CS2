@@ -1,8 +1,8 @@
 package cueare;
 
-import javax.swing.UIManager;
+import java.awt.Rectangle;
 
-import util.BufferedLoader;
+import javax.swing.UIManager;
 
 public class Tester {
 
@@ -15,15 +15,20 @@ public class Tester {
 		}
 	MappingUtil u = new MappingUtil();
 
-	var b = u.encode("abcdefg");
-	BufferedLoader bb = new BufferedLoader();
+//	var b = u.encode("abcdefg");
+//
+//	for(var i : b) {
+//		System.out.println(Arrays.toString(i));
+//	}
+//	
 	
-	bb.printImage(u.specToImage(b, false), 0, 0);
-	
-	
-	//u.encodeAndDisplay();
+	u.encodeAndDisplay();
 	
 
+	
+	Rectangle r = new Rectangle();
+	
+	
 	}
 
 }

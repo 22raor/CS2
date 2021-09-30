@@ -33,17 +33,20 @@ public class BigBrainCornerDetector {
 	static Feeder feeder;
 	static CameraUtil c;
 
-	static double k = 0.04;
+	// Corner parameters
+	static double harrisConstant = 0.04;
 	static int threshold = 200;
 	static int cornersCount = 30;
-
+	static int minDistance = 20;
 	static boolean harris = false;
 
-	// param
-	static int minDistance = 20;
+	// Enable checking of number of sides for contours
+	static boolean beta = false;
+
+	// dont conv to blackwhite
+	static boolean grayLol = false;
 
 	public static void main(String... args) {
-		// System.loadLibrary(Core.NATIVE_LIBRARY_NAME);
 		OpenCV.loadLocally();
 
 		c = new CameraUtil();
@@ -55,46 +58,42 @@ public class BigBrainCornerDetector {
 
 	}
 
+	/**
+	 * Starts feeding camera frames to JFrame
+	 */
 	public static void beginFeederThread() {
 		feeder = new Feeder();
 		feeder.start();
 	}
 
+	/**
+	 * Starts new thread for drawing contours
+	 */
 	public static void drawBoundsThread() {
 		feeder.toggleManualInput();
 		while (true) {
-			// currentImage = c.getCurrentFrame();
 			threshold = c.getThreshold();
-			k = c.getConstant();
+			harrisConstant = c.getConstant();
 			cornersCount = c.getCorners();
-
-			// currentImage = processFrameButCooler(c.getCurrentFrame(), c.getGray(), false,
-			// harris);
-			currentImage = contourDraw(c.getCurrentFrame());
-			// currentImage = c.getCurrentFrame();
+			currentImage = contourProcess(c.getCurrentFrame(), true);
 			try {
 				Thread.sleep(20);
 			} catch (InterruptedException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 		}
 
 	}
 
-	public static BufferedImage processFrame(BufferedImage currentFrame, boolean gray, boolean printLocs) {
-		// Mat m = new Mat();
+	public static BufferedImage processHarris(BufferedImage currentFrame, boolean gray, boolean printLocs) {
 		Mat src = BufferedImage2Mat(currentFrame);
 
 		if (src == null) {
-			// System.out.println("ih");
 			return currentFrame;
-			// return null;
 		}
 
 		Mat srcGray = new Mat();
 		Imgproc.cvtColor(src, srcGray, Imgproc.COLOR_BGR2GRAY);
-		// int threshold = 220;
 		Mat dstNorm = new Mat();
 		Mat dstNormScaled = new Mat();
 
@@ -106,7 +105,7 @@ public class BigBrainCornerDetector {
 		// double k = 0.04;
 
 		/// Detecting corners
-		Imgproc.cornerHarris(srcGray, dst, blockSize, apertureSize, k);
+		Imgproc.cornerHarris(srcGray, dst, blockSize, apertureSize, harrisConstant);
 
 		/// Normalizing
 		Core.normalize(dst, dstNorm, 0, 255, Core.NORM_MINMAX);
@@ -127,45 +126,29 @@ public class BigBrainCornerDetector {
 				}
 			}
 		}
-
-		// System.out.println("frame found");
-
 		return Mat2BufferedImage(gray ? dstNormScaled : src);
-		// return Mat2BufferedImage(dstNormScaled);
-		// return null;
 	}
 
 	static Random rng = new Random();
 
-	public static BufferedImage processFrameButCooler(BufferedImage currentFrame, boolean gray, boolean printLocs,
+	public static BufferedImage processShiTomasi(BufferedImage currentFrame, boolean gray, boolean printLocs,
 			boolean harris) {
 		Mat src = BufferedImage2Mat(currentFrame);
 		Mat srcGray = new Mat();
 		Imgproc.cvtColor(src, srcGray, Imgproc.COLOR_BGR2GRAY);
-
-		// Mat srcGray = src;
-
 		cornersCount = Math.max(cornersCount, 1);
 		MatOfPoint corners = new MatOfPoint();
 		double qualityLevel = 0.01;
-		// double minDistance = 10;
 		int blockSize = 3, gradientSize = 3;
 		boolean useHarrisDetector = harris;
-
-		// double k = 0.04;
-
 		Mat copy = src.clone();
 		Imgproc.goodFeaturesToTrack(srcGray, corners, cornersCount, qualityLevel, minDistance, new Mat(), blockSize,
-				gradientSize, useHarrisDetector, k);
-		// System.out.println("** Number of corners detected: " + corners.rows());
+				gradientSize, useHarrisDetector, harrisConstant);
 		int[] cornersData = new int[(int) (corners.total() * corners.channels())];
 		corners.get(0, 0, cornersData);
 		int radius = c.isDownscaled() ? 3 : 4;
 		int thickness = c.isDownscaled() ? 1 : 2;
 		for (int i = 0; i < corners.rows(); i++) {
-//            Imgproc.circle(gray ? copy : src, new Point(cornersData[i * 2], cornersData[i * 2 + 1]), radius,
-//                    new Scalar(rng.nextInt(256), rng.nextInt(256), rng.nextInt(256)), Core.FILLED);
-
 			Imgproc.circle(gray ? srcGray : copy, new Point(cornersData[i * 2], cornersData[i * 2 + 1]), radius,
 					new Scalar(0), thickness, 5, 0);
 
@@ -176,8 +159,8 @@ public class BigBrainCornerDetector {
 		return Mat2BufferedImage(gray ? srcGray : copy);
 	}
 
-	public static BufferedImage processFrameButCooler(BufferedImage img) {
-		return processFrameButCooler(img, false, false, false);
+	public static BufferedImage processShiTomasi(BufferedImage img) {
+		return processShiTomasi(img, false, false, false);
 	}
 
 	public static BufferedImage contraster(BufferedImage img) {
@@ -201,7 +184,6 @@ public class BigBrainCornerDetector {
 				try {
 					Thread.sleep(15);
 				} catch (InterruptedException e) {
-					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
 
@@ -260,20 +242,12 @@ public class BigBrainCornerDetector {
 		double minDistance = 10;
 		int blockSize = 3, gradientSize = 3;
 		boolean useHarrisDetector = harris;
-
-		// double k = 0.04;
-
-		// Mat copy = src.clone();
 		Imgproc.goodFeaturesToTrack(srcGray, corners, cornersCount, qualityLevel, minDistance, new Mat(), blockSize,
-				gradientSize, useHarrisDetector, k);
-		// System.out.println("** Number of corners detected: " + corners.rows());
+				gradientSize, useHarrisDetector, harrisConstant);
 		int[] cornersData = new int[(int) (corners.total() * corners.channels())];
 		corners.get(0, 0, cornersData);
 
 		for (int i = 0; i < corners.rows(); i++) {
-//	            Imgproc.circle(gray ? copy : src, new Point(cornersData[i * 2], cornersData[i * 2 + 1]), radius,
-//	                    new Scalar(rng.nextInt(256), rng.nextInt(256), rng.nextInt(256)), Core.FILLED);
-
 			cornersPoints.add(new Point(cornersData[i * 2], cornersData[i * 2 + 1]));
 
 		}
@@ -281,17 +255,24 @@ public class BigBrainCornerDetector {
 
 	}
 
+		
 	@SuppressWarnings("unchecked")
-	public static BufferedImage noiseCancelling(BufferedImage img) {
+	public static BufferedImage contourProcess(BufferedImage img, boolean contourDraw) {
 
 		Mat src = BufferedImage2Mat(img);
 		Mat gray = new Mat();
 		Imgproc.cvtColor(src, gray, Imgproc.COLOR_BGR2GRAY);
 		Mat blur = new Mat();
-		Imgproc.GaussianBlur(gray, blur, new Size(9, 9), 0);
+		Imgproc.GaussianBlur(gray, blur, new Size(3, 3), 0);
 		Mat thresh = new Mat();
 		Imgproc.threshold(blur, thresh, 0, 255, Imgproc.THRESH_BINARY_INV + Imgproc.THRESH_OTSU);
 
+		
+		if(grayLol) {
+			thresh = blur;
+		}
+		
+		
 		Mat finale = new Mat();
 		Imgproc.cvtColor(thresh, finale, Imgproc.COLOR_GRAY2BGR);
 
@@ -305,17 +286,11 @@ public class BigBrainCornerDetector {
 		Mat hier = new Mat();
 		List<MatOfPoint> points = new ArrayList<>();
 		Imgproc.findContours(close2, points, hier, Imgproc.RETR_EXTERNAL, Imgproc.CHAIN_APPROX_SIMPLE);
-		// Imgproc.drawContours(close2, points, -1, new Scalar(0,255,0), 3);
-		// important Imgproc.drawContours(finale, points, -1, new Scalar(0,255,0), 3);
-
 		for (int i = 0; i < points.size(); i++) {
-			// Convert contours(i) from MatOfPoint to MatOfPoint2f
 			MatOfPoint2f r = new MatOfPoint2f();
 			MatOfPoint2f tar = new MatOfPoint2f();
 			points.get(i).convertTo(r, CvType.CV_32FC2);
-			// Processing on mMOP2f1 which is in type MatOfPoint2f
 			Imgproc.approxPolyDP(r, tar, 0.04 * Imgproc.arcLength(r, true), true);
-			// Convert back to MatOfPoint and put the new values back into the contours list
 			tar.convertTo(points.get(i), CvType.CV_32S);
 
 		}
@@ -342,12 +317,26 @@ public class BigBrainCornerDetector {
 
 		MatOfPoint ppp = points.get(points.size() - 1);
 
-		Imgproc.drawContours(src, points.subList(points.size() - 1, points.size()), -1, new Scalar(255, 0, 0), 3);
-		var pts = ppp.toList();
-		// System.out.println(ppp.size()); This statement can verify that it is a square
-		// System.out.println(pts);
+		if (beta && points.size() > 3) {
+			for (MatOfPoint punto : points.subList(points.size() - 3, points.size())) {
+				if (punto.size().height == 4) {
+					ppp = punto;
 
-		if (pts.size() != 4) {
+					break;
+				}
+
+			}
+		}
+
+		
+
+		
+		
+		var pts = ppp.toList();
+
+		if (contourDraw || pts.size() != 4) {
+			Imgproc.drawContours(src, List.of(ppp), -1, new Scalar(255, 0, 0), 3);
+
 			return Mat2BufferedImage(src);
 		} else {
 
@@ -374,110 +363,30 @@ public class BigBrainCornerDetector {
 			return Mat2BufferedImage(cropped);
 		}
 
-		// return Mat2BufferedImage(src);
-
-		// return null;s
 	}
-
-	@SuppressWarnings("unchecked")
-	public static BufferedImage contourDraw(BufferedImage img) {
-
-		Mat src = BufferedImage2Mat(img);
-		Mat gray = new Mat();
-		Imgproc.cvtColor(src, gray, Imgproc.COLOR_BGR2GRAY);
-		Mat blur = new Mat();
-		Imgproc.GaussianBlur(gray, blur, new Size(9, 9), 0);
-		Mat thresh = new Mat();
-		Imgproc.threshold(blur, thresh, 0, 255, Imgproc.THRESH_BINARY_INV + Imgproc.THRESH_OTSU);
-
-		Mat finale = new Mat();
-		Imgproc.cvtColor(thresh, finale, Imgproc.COLOR_GRAY2BGR);
-
-		Mat close = new Mat();
-
-		thresh.copyTo(close);
-
-		Mat close2 = new Mat();
-		Imgproc.Canny(close, close2, 90, 150);
-
-		Mat hier = new Mat();
-		List<MatOfPoint> points = new ArrayList<>();
-		Imgproc.findContours(close2, points, hier, Imgproc.RETR_EXTERNAL, Imgproc.CHAIN_APPROX_SIMPLE);
-		// Imgproc.drawContours(close2, points, -1, new Scalar(0,255,0), 3);
-		// important Imgproc.drawContours(finale, points, -1, new Scalar(0,255,0), 3);
-
-		for (int i = 0; i < points.size(); i++) {
-			// Convert contours(i) from MatOfPoint to MatOfPoint2f
-			MatOfPoint2f r = new MatOfPoint2f();
-			MatOfPoint2f tar = new MatOfPoint2f();
-			points.get(i).convertTo(r, CvType.CV_32FC2);
-			// Processing on mMOP2f1 which is in type MatOfPoint2f
-			Imgproc.approxPolyDP(r, tar, 0.04 * Imgproc.arcLength(r, true), true);
-			// Convert back to MatOfPoint and put the new values back into the contours list
-			tar.convertTo(points.get(i), CvType.CV_32S);
-
-		}
-
-		Collections.sort(points, new Comparator() {
-
-			@Override
-			public int compare(Object o1, Object o2) {
-				MatOfPoint one = (MatOfPoint) o1;
-				MatOfPoint two = (MatOfPoint) o2;
-				double area1 = Imgproc.contourArea(one);
-				double area2 = Imgproc.contourArea(two);
-
-				if (area1 > area2) {
-					return 1;
-				} else if (area1 < area2) {
-					return -1;
-				}
-
-				return 0;
-			}
-
-		});
-
-		MatOfPoint ppp = points.get(points.size() - 1);
-
-		Imgproc.drawContours(src, points.subList(points.size() - 1, points.size()), -1, new Scalar(255, 0, 0), 3);
-		var pts = ppp.toList();
-		// System.out.println(ppp.size()); This statement can verify that it is a square
-		// System.out.println(pts);
-
-		return Mat2BufferedImage(src);
-
-	}
-
+	
+	
 	public static boolean[][] cropToCode(BufferedImage img) {
-		// Graphics g = img.getGraphics();
-		// g.setColor(Color.green);
 		boolean[][] output = new boolean[7][7];
 
 		for (int i = 85; i < 600; i += 80) {
 			for (int j = 70; j < 450; j += 59) {
-				// g.fillRect(i-10, j-10, 10, 10);
-
-				// pic is inverted so white is true;
 				output[(i - 85) / 80][(j - 70) / 59] = isWhite(img.getRGB(i, j));
-
 			}
-
 		}
-		// MappingUtil util = new MappingUtil();
-		// util.displayJR(output);
-		// c.display(img);
 		return output;
 
 	}
 
 	static boolean isWhite(int rgb) {
+		boolean a = true;
+
 		Color c = new Color(rgb);
 		if (c.getRed() > 100 && c.getBlue() > 100) {
-			return true;
+			a = false;
 		}
 
-		return false;
+		return grayLol ? a : !a;
 	}
 
 	public static Mat vector_Point2f_to_Mat(List<Point> pts) {

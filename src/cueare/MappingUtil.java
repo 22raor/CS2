@@ -171,7 +171,8 @@ public class MappingUtil {
 		// System.out.println(newSum + " " + correctSum);
 
 		if (correctSum != newSum) {
-			throw new Exception("Checksum invalid");
+			
+			throw new Exception("Checksum invalid");	
 		}
 
 		String output = "";
@@ -352,6 +353,8 @@ public class MappingUtil {
 			// TODO Auto-generated catch block
 			// e.printStackTrace();
 			System.err.print(e);
+			msg = "Invalid checksum";
+			dec+=msg;
 		}
 
 		JLabel lab = new JLabel(dec);

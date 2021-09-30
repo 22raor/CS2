@@ -253,25 +253,22 @@ public class CameraUtil {
 					} else {
 
 						if (CameraUtil.processOlder) {
-							display(rescale(BigBrainCornerDetector.processFrame(CameraUtil.this.getCurrentFrame(),
+							display(rescale(BigBrainCornerDetector.processHarris(CameraUtil.this.getCurrentFrame(),
 									false, true)));
 						} else {
 
 							if (noiseCancel) {
 								BufferedImage res = rescale(
-										BigBrainCornerDetector.noiseCancelling(CameraUtil.this.getCurrentFrame(true)));
+										BigBrainCornerDetector.contourProcess(CameraUtil.this.getCurrentFrame(true), false));
 								boolean[][] finalOutput = util.orient(BigBrainCornerDetector.cropToCode(res));
 
 								display(invert(res));
 								util.specToImage(finalOutput, true);
 
 							} else {
-								display(rescale(BigBrainCornerDetector.processFrameButCooler(
+								display(rescale(BigBrainCornerDetector.processShiTomasi(
 										CameraUtil.this.getCurrentFrame(), false, true, harris)));
 							}
-
-							// display(rescale(BigBrainCornerDetector
-							// .processFrameIntoQR(CameraUtil.this.getCurrentFrame())));
 
 						}
 
@@ -416,6 +413,11 @@ public class CameraUtil {
 	}
 
 	public BufferedImage invert(BufferedImage img) {
+		
+			
+	
+		
+		
 		// Graphics g = img.getGraphics();
 		for (int i = 0; i < img.getWidth(); i++) {
 			for (int j = 0; j < img.getHeight(); j++) {
