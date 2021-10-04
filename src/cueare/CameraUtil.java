@@ -373,12 +373,10 @@ public class CameraUtil {
 			canvas.pack();
 			
 			canvas.setLocation(10, 10);
-			// canvas.showImage(frame);
 
 			canvas.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
 		} catch (Exception e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 
@@ -396,7 +394,6 @@ public class CameraUtil {
 
 		}
 
-		// canvas.showImage(img);
 
 	}
 
@@ -453,11 +450,6 @@ public class CameraUtil {
 
 	public BufferedImage invert(BufferedImage img) {
 		
-			
-	
-		
-		
-		// Graphics g = img.getGraphics();
 		for (int i = 0; i < img.getWidth(); i++) {
 			for (int j = 0; j < img.getHeight(); j++) {
 				int b = img.getRGB(i, j);
