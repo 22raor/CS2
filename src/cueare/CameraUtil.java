@@ -1,11 +1,9 @@
 package cueare;
 
-import java.awt.AWTException;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Graphics2D;
-import java.awt.HeadlessException;
 import java.awt.Image;
 import java.awt.Rectangle;
 import java.awt.Robot;
@@ -15,12 +13,10 @@ import java.awt.event.MouseMotionListener;
 import java.awt.geom.AffineTransform;
 import java.awt.image.AffineTransformOp;
 import java.awt.image.BufferedImage;
-import java.awt.Toolkit;
 
 import javax.swing.BorderFactory;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
-import javax.swing.JCheckBox;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JSlider;
@@ -288,7 +284,7 @@ public class CameraUtil {
 										BigBrainCornerDetector.contourProcess(CameraUtil.this.getCurrentFrame(true), false));
 								boolean[][] finalOutput = util.orient(BigBrainCornerDetector.cropToCode(res));
 
-								//display(invert(res));  //uncomment if u want to see raw image
+								display(invert(res));  //uncomment if u want to see raw image
 								util.specToImage(finalOutput, true);
 
 							} else {
@@ -465,9 +461,13 @@ public class CameraUtil {
 		for (int i = 0; i < img.getWidth(); i++) {
 			for (int j = 0; j < img.getHeight(); j++) {
 				int b = img.getRGB(i, j);
-				if (BigBrainCornerDetector.isWhite(b)) {
+						
+						if (b == Color.green.getRGB()) {
+							
+						}
+						else if (BigBrainCornerDetector.isWhite(b)) {
 					img.setRGB(i, j, Color.black.getRGB());
-				} else {
+				}  else {
 					img.setRGB(i, j, Color.white.getRGB());
 				}
 
