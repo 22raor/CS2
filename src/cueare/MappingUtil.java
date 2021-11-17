@@ -44,7 +44,7 @@ public class MappingUtil {
 	}
 
 	public MappingUtil() {
-		alphabet = nums + abc.toUpperCase() + abc + "%";
+		alphabet = nums + abc.toUpperCase() + abc + "% ";
 	}
 
 	public boolean[][] encode(String text) {

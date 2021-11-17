@@ -284,7 +284,7 @@ public class CameraUtil {
 										BigBrainCornerDetector.contourProcess(CameraUtil.this.getCurrentFrame(true), false));
 								boolean[][] finalOutput = util.orient(BigBrainCornerDetector.cropToCode(res));
 
-								display(invert(res));  //uncomment if u want to see raw image
+							//	display(invert(res));  //uncomment if u want to see raw image
 								util.specToImage(finalOutput, true);
 
 							} else {
