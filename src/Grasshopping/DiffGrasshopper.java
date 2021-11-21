@@ -16,7 +16,7 @@ import javax.swing.JPanel;
 
 public class DiffGrasshopper {
 	
-	static final int IMG_SIZE = 250;
+	static final int IMG_SIZE = 300;
 	
 	
 	public static class Pix {
@@ -110,7 +110,7 @@ public class DiffGrasshopper {
 			}
 
 		} catch (Exception e) {
-		//	System.out.println(newX + " " + newY);
+			System.out.println(newX + " " + newY);
 		}
 
 	}
@@ -126,6 +126,8 @@ public class DiffGrasshopper {
 		
 	}
 
+	static int numLawn = IMG_SIZE * IMG_SIZE;
+	
 	public static void updateLawn() {
 
 
@@ -140,7 +142,7 @@ public class DiffGrasshopper {
 		nonLawn = new ArrayList<Pix>();
 		
 		
-		for(int i = 0; i < IMG_SIZE*IMG_SIZE; i++) {
+		for(int i = 0; i < numLawn; i++) {
 			if(i < 10000) {
 			//	aList.get(i).setNum(0);
 				lawn.add(aList.get(i)); //start at 0 again or old value?
