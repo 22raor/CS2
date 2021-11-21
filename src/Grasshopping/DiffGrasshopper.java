@@ -22,9 +22,9 @@ public class DiffGrasshopper {
 	public static class Pix {
 		int x;
 		int y;
-		int num;
+		double num;
 
-		public Pix(int x, int y, int num) {
+		public Pix(int x, int y, double num) {
 			this.x = x;
 			this.y = y;
 			this.num = num;
@@ -54,6 +54,8 @@ public class DiffGrasshopper {
 	public static ArrayList<Pix> nonLawn = new ArrayList<>();
 	public static ArrayList<Pix> lawn = new ArrayList<>();
 
+	static int currentIter = 0;
+	
 	public static void main(String[] args) {
 		
 		
@@ -68,17 +70,17 @@ public class DiffGrasshopper {
 		display();
 	
 		while (true) {
-	
-			
-			
+
 			int i = 0;
 			while (i < 10000) {
 				simulateLanding();
 				i++;
 			}
 			updateLawn();
+			currentIter++;
 			display();
 			i = 0;
+
 		}
 
 	}
@@ -136,20 +138,33 @@ public class DiffGrasshopper {
 		aList.addAll(nonLawn);
 		
 		
-		Collections.sort(aList, (a,b) -> b.num - a.num);
+		Collections.sort(aList, (a,b) -> (int) (Math.signum(b.num - a.num)));
 
 		lawn = new ArrayList<Pix>();
 		nonLawn = new ArrayList<Pix>();
 		
 		
 		for(int i = 0; i < numLawn; i++) {
+			
+			if(aList.get(i).num >= Double.MAX_VALUE - 1) {
+				System.out.println(true);
+			}
+			
+			
+			
 			if(i < 10000) {
-			//	aList.get(i).setNum(0);
+			//	aList.get(i).setNum(0); //maybe divide number to improve efficiency
+				//aList.get(i).num/=10000;
+				//System.out.println(aList.get(i).num);
 				lawn.add(aList.get(i)); //start at 0 again or old value?
 			} else {
-				//aList.get(i).setNum(0);
+				//aList.get(i).num/=10000;
+				
+				//System.out.println(aList.get(i).num);
 				nonLawn.add(aList.get(i)); //start at 0 again or old value?
 			}
+			
+			
 		}
 		
 	
@@ -182,8 +197,16 @@ public class DiffGrasshopper {
 
 	public static void display() {
 		BufferedImage img = new BufferedImage(IMG_SIZE, IMG_SIZE, BufferedImage.TYPE_INT_RGB);
+		
+	
+		
+		
 		for (Pix i : lawn) {
-			img.setRGB(i.x, i.y, Color.blue.getRGB());
+		
+			
+			int col = Color.blue.getRGB();
+			
+			img.setRGB(i.x, i.y, col );
 
 		}
 
