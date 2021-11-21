@@ -1,3 +1,4 @@
+package Grasshopping;
 import java.awt.Color;
 import java.awt.Image;
 import java.awt.Point;
@@ -14,6 +15,10 @@ import javax.swing.JPanel;
 
 
 public class DiffGrasshopper {
+	
+	static final int IMG_SIZE = 250;
+	
+	
 	public static class Pix {
 		int x;
 		int y;
@@ -105,7 +110,7 @@ public class DiffGrasshopper {
 			}
 
 		} catch (Exception e) {
-			System.out.println(newX + " " + newY);
+		//	System.out.println(newX + " " + newY);
 		}
 
 	}
@@ -135,7 +140,7 @@ public class DiffGrasshopper {
 		nonLawn = new ArrayList<Pix>();
 		
 		
-		for(int i = 0; i < 200*200; i++) {
+		for(int i = 0; i < IMG_SIZE*IMG_SIZE; i++) {
 			if(i < 10000) {
 			//	aList.get(i).setNum(0);
 				lawn.add(aList.get(i)); //start at 0 again or old value?
@@ -150,11 +155,13 @@ public class DiffGrasshopper {
 	}
 
 	public static void generateStartingLawn() {
+		int a = (IMG_SIZE - 100)/2;
+		
+		
+		for (int i = 0; i < IMG_SIZE; i++) {
+			for (int j = 0; j < IMG_SIZE; j++) {
 
-		for (int i = 0; i < 200; i++) {
-			for (int j = 0; j < 200; j++) {
-
-				if (i > 50 && i < 150 && j > 50 && j < 150) {
+				if (i > a && i < 100+a && j > a && j < 100+a) {
 					lawn.add(new Pix(i, j, 0));
 				} else {
 					nonLawn.add(new Pix(i, j, 0));
@@ -172,7 +179,7 @@ public class DiffGrasshopper {
 	static JPanel pan = new JPanel();
 
 	public static void display() {
-		BufferedImage img = new BufferedImage(200, 200, BufferedImage.TYPE_INT_RGB);
+		BufferedImage img = new BufferedImage(IMG_SIZE, IMG_SIZE, BufferedImage.TYPE_INT_RGB);
 		for (Pix i : lawn) {
 			img.setRGB(i.x, i.y, Color.blue.getRGB());
 
