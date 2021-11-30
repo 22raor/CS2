@@ -1,4 +1,4 @@
-package Grasshopping;
+package grasshopping;
 
 import java.awt.Color;
 import java.awt.Image;
@@ -16,7 +16,8 @@ import javax.swing.JPanel;
 public class DiffGrasshopper3 {
 
 	static final int IMG_SIZE = 300;
-
+	static double jump = 30.0;
+	
 	static Pix[][] quickAccess = new Pix[IMG_SIZE][IMG_SIZE];
 	
 	
@@ -61,7 +62,7 @@ public class DiffGrasshopper3 {
 		while (true) {
 
 			int i = 0;
-			while (i < 200000000) {
+			while (i < 20000000) {
 				simulateLanding();
 				i++;
 			}
@@ -80,10 +81,13 @@ public class DiffGrasshopper3 {
 	public static void simulateLanding() {
 		try {
 
+			
+			
+			
 			Pix b = lawn.get((int) (Math.random() * lawn.size()));
 			double direction = Math.toRadians(Math.random() * 360.0);
-			newX = (int) (b.x + Math.cos(direction) * 30.0);
-			newY = (int) (b.y + Math.sin(direction) * 30.0);
+			newX = (int) (b.x + Math.cos(direction) * jump);
+			newY = (int) (b.y + Math.sin(direction) * jump);
 //
 //			Pix key = new Pix(newX, newY, 0);
 //
@@ -119,9 +123,11 @@ public class DiffGrasshopper3 {
 		//lawn = new ArrayList<Pix>();
 		lawn.clear();
 		for (int i = 0; i < IMG_SIZE * IMG_SIZE; i++) {
-			all.get(i).num = 0;
+			Pix tommm = all.get(i);
+			
+			tommm.num = 0;
 			if(i < 10000) {
-				lawn.add(all.get(i));
+				lawn.add(tommm);
 			} 
 			
 

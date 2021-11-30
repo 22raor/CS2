@@ -13,14 +13,18 @@ import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 
-public class DiffGrasshopper {
+public class DiffGrasshopper4 {
 
 	static final int IMG_SIZE = 300;
 
+	static Pix[][] quickAccess = new Pix[IMG_SIZE][IMG_SIZE];
+	
+	
 	public static class Pix {
 		int x;
 		int y;
 		double num;
+		boolean locked = false;
 
 		public Pix(int x, int y, double num) {
 			this.x = x;
@@ -39,23 +43,15 @@ public class DiffGrasshopper {
 			// TODO Auto-generated method stub
 			this.num = i;
 		}
-		// generate hashcode?? unique for 2 vals
-
-		@Override
-		public int hashCode() {
-			return (int) (Math.pow(2, x) - Math.pow(2, y));
-
-		}
 
 	}
 
-	public static ArrayList<Pix> nonLawn = new ArrayList<>();
+	public static ArrayList<Pix> all = new ArrayList<>();
 	public static ArrayList<Pix> lawn = new ArrayList<>();
 
 	static int currentIter = 0;
 
 	public static void main(String[] args) {
-
 
 		generateStartingLawn();
 		news.add(pan);
@@ -66,7 +62,7 @@ public class DiffGrasshopper {
 		while (true) {
 
 			int i = 0;
-			while (i < 1000000) {
+			while (i < 20000000) {
 				simulateLanding();
 				i++;
 			}
@@ -84,27 +80,22 @@ public class DiffGrasshopper {
 
 	public static void simulateLanding() {
 		try {
-			// Collections.shuffle(lawn);
 
 			Pix b = lawn.get((int) (Math.random() * lawn.size()));
-			double direction = Math.toRadians(Math.random() * 360);
-			newX = (int) (b.x + Math.cos(direction) * 30);
-			newY = (int) (b.y + Math.sin(direction) * 30);
-
-			Pix key = new Pix(newX, newY, 0);
-
-			// INCREMENT LANDINGS HERE
-			if (lawn.contains(key)) {
-				Pix old = get(lawn, key);
-				old.num++;
-
-			} else {
-				Pix old = get(nonLawn, key);
-				old.num++;
-			}
+			double direction = Math.toRadians(Math.random() * 360.0);
+			newX = (int) (b.x + Math.cos(direction) * 62.0);
+			newY = (int) (b.y + Math.sin(direction) * 62.0);
+//
+//			Pix key = new Pix(newX, newY, 0);
+//
+//			// INCREMENT LANDINGS HERE
+//
+//			get(all, key).num++;
+//			
+			quickAccess[newX][newY].num++;
 
 		} catch (Exception e) {
-			// System.out.println(newX + " " + newY);
+			System.out.println(newX + " " + newY);
 		}
 
 	}
@@ -120,32 +111,27 @@ public class DiffGrasshopper {
 
 	}
 
-	static int numLawn = IMG_SIZE * IMG_SIZE;
-
 	public static void updateLawn() {
 
-		List<Pix> aList = new ArrayList<Pix>();
-		aList.addAll(lawn);
-		aList.addAll(nonLawn);
+		Collections.shuffle(all); //OPTIONAL
+		
+		Collections.sort(all, (a, b) -> (int) (b.num - a.num));
 
-		Collections.sort(aList, (a, b) -> (int) (Math.signum(b.num - a.num)));
-
-		lawn = new ArrayList<Pix>();
-		nonLawn = new ArrayList<Pix>();
-
-		for (int i = 0; i < numLawn; i++) {
-
-//			if (aList.get(i).num >= Double.MAX_VALUE - 1) {
-//				System.out.println(true);
-//			}
-
-			if (i < 10000) {
-				//aList.get(i).setNum(1);
-				lawn.add(aList.get(i)); // start at 0 again or old value?
-			} else {
-				//aList.get(i).setNum(0);
-				nonLawn.add(aList.get(i)); // start at 0 again or old value?
+		//lawn = new ArrayList<Pix>();
+		lawn.clear();
+		for (int i = 0; i < IMG_SIZE * IMG_SIZE; i++) {
+			Pix ttt = all.get(i);
+			
+			if(!ttt.locked) {
+				all.get(i).num = 0;
 			}
+			
+			
+			
+			if(i < 10000) {
+				lawn.add(ttt);
+			} 
+			
 
 		}
 
@@ -158,15 +144,33 @@ public class DiffGrasshopper {
 
 		for (int i = 0; i < IMG_SIZE; i++) {
 			for (int j = 0; j < IMG_SIZE; j++) {
-
+				Pix tom = new Pix(i, j, 0);
+				
+				quickAccess[i][j] = tom;
+				
 				if (i > a && i < tomato && j > a && j < tomato) {
-					lawn.add(new Pix(i, j, 0));
+
+					if(i > 130 && i < 170 && j > 130 && j < 170) {
+						tom.locked = true;
+						tom.num = Double.MAX_VALUE;
+					}
+					
+					
+					lawn.add(tom);
+					all.add(tom);
 				} else {
-					nonLawn.add(new Pix(i, j, 0));
+					all.add(tom);
 				}
+				
+				
+				
+				
 
 			}
 		}
+		
+		
+		
 
 	}
 
@@ -179,6 +183,7 @@ public class DiffGrasshopper {
 	public static void display() {
 		BufferedImage img = new BufferedImage(IMG_SIZE, IMG_SIZE, BufferedImage.TYPE_INT_RGB);
 
+		
 		for (Pix i : lawn) {
 
 			int col = Color.blue.getRGB();
