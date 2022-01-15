@@ -75,8 +75,8 @@ public class BigBrainCornerDetector {
 	 */
 	public static void drawBoundsThread() {
 		feeder.toggleManualInput();
-		CanvasFrame c2 = new CanvasFrame("Rendered");
-		c2.setLayout(new FlowLayout());
+		//CanvasFrame c2 = new CanvasFrame("Rendered");
+		//c2.setLayout(new FlowLayout());
 		
 		while (true) {
 			threshold = c.getThreshold();
@@ -86,17 +86,20 @@ public class BigBrainCornerDetector {
 			cornersCount = c.getCorners();
 			
 	//		currentImage = contourProcess(c.getCurrentFrame(), true);
+			
+			
+			
 			var vv = contourRender(c.getCurrentFrame());
 			currentImage = vv[0];
 			
 		
-		BufferedImage p2 = c.rescale(vv[1]);
+		//BufferedImage p2 = c.rescale(vv[1]);
 			
 //			
-			boolean[][] bb = cropToCode(p2);
-			p2 = m.specToImage(bb , false);
+	//		boolean[][] bb = cropToCode(p2);
+	//		p2 = m.specToImage(bb , false);
 //			
-		c2.showImage(p2);
+	//	c2.showImage(p2);
 			
 
 			
